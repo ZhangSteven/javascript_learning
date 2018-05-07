@@ -1,0 +1,142 @@
+<script>
+/************************************************************
+	Chapter 3 Functions
+
+	Various ways of declaring functions in Javascript.
+*************************************************************/
+
+/*
+	Declare function as a regular binding.
+
+	Note it must be ended with ";" because it's a binding declaration.
+*/
+const square = function(x) {
+	return x*x;
+};
+console.log(square(12));
+
+
+
+/*
+	Declare function in short form.
+
+	This also creates a binding from a name to a function, but 
+	there is no ";" at the end.
+*/
+function square2(x){
+	return x*x;
+}
+console.log(square2(13));
+
+
+
+/*
+	Declare function, but not as const binding.
+
+	Sometimes, it's handy if a name can be bound to different functions
+	in different situations. In this case, do not use the "const" key
+	word in the binding declaration.
+*/
+let safeMode = false;
+launchMissiles = function(){
+	console.log('Launch missile now.');
+};
+if (safeMode) launchMissiles = function() { /* do nothing */ };
+
+launchMissiles();
+
+
+
+/*
+	Declare function in arrow function form. 
+*/
+const sum2 = (a,b) => { return a+b; };
+const horn = () => { console.log('Toot'); };
+horn();
+
+// the (), {} and return statement can be omitted when there is only 
+// one variable and one line of code.
+const square3 = x => x*x;
+console.log(square3(14));
+
+
+
+/*
+	Optional arguments.
+
+	Javascript won't warn you if there are too many or too few arguments
+	passed to a function. If too many are passed, then the extra ones are
+	simply ignored, if too few, then the missing ones simply get the value
+	of "undefined" if they are no assigned any default values in the function
+	declaration.
+*/
+
+// a function that behaves differently if one or two arguments are
+// passed.
+function minus(a, b){
+	if (b===undefined) return -a;
+	return a-b;
+}
+console.log(minus(10));
+console.log(minus(10,5));
+
+
+
+// default values can also be used if the argument is missing.
+function power(base, exponent=2){
+	let result = 1;
+	for (i=0; i<exponent; i++){
+		result *= base;
+	}
+	return result;
+}
+console.log(power(5));
+console.log(power(10,3));
+
+
+
+/*
+	Nested function declaration.
+
+	The function declared inside a scope can access bindings in the scope
+	enclosing it.
+*/
+const hummus = function(factor){
+	const ingredient = function(amount, unit, name){
+
+		// accessing the factor binding outside the function
+		let ingredientAmount = amount * factor;
+
+		if (ingredientAmount > 1) unit += 's';
+		console.log(`${ingredientAmount} ${unit} ${name}`);
+	};
+
+	ingredient(1, 'can', 'chickpeas');
+	ingredient(0.25, 'cup', 'tahini');
+	ingredient(0.5, 'teaspoon', 'cumin');
+};
+
+hummus(1);	// for child
+hummus(2);	// for adult
+hummus(3);	// for very strong adult
+
+
+
+/*
+	Closure.
+
+	We know that a function can access bindings in the scope enclosing
+	it. When a function is created and used elsewhere, it can still 
+	reference a specific instance of a local binding in an enclosing
+	scope.
+*/
+function multiplier(factor){
+	return number => number*factor;
+}
+
+const twice = multiplier(2);
+const triple = multiplier(3);
+
+console.log(twice(5));
+console.log(triple(6));
+</script>

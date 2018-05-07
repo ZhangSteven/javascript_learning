@@ -1,0 +1,122 @@
+<script>
+/*
+	Higher-order functions.
+
+	Functions that operation on other functions, either by taking them
+	as arguments or by returning them, are called higher-order functions.
+
+	Higher-order functions allow us to abstract over actions, not just
+	values.
+*/
+
+/*
+	A function to create new functions, a function factory.
+*/
+function greaterThan(n){
+	return m => m>n;
+}
+
+let greaterThan10 = greaterThan(10);
+console.log(greaterThan10(11));
+console.log(greaterThan10(9));
+
+
+
+/*
+	A function that modifies the behaviour of another function,
+	a function "decorator".
+
+	The below function noisy() can take any function f() as input,
+	return a new function, the new function does everything f() does,
+	return whatever f() returns, but does something extra.
+*/
+function noisy(f){
+	return (...args) => {
+		console.log('calling with', args);
+		let result = f(...args);
+		console.log('the result is', result);
+		return result;
+	};
+}
+
+minNoisy = noisy(Math.min);
+x = minNoisy(1,2,3);	// we can see the console.log results
+console.log('return value = ', x);	// result value same as Math.min
+
+
+
+/*
+	Built-in higher-order functions with array.
+
+	As we can see, these functions are very much like C++ template
+	functions, they can work on any element type, and they also
+	need user defined helper functions to work.
+*/
+
+// an array of student records
+let sampleArray = [
+	{name: 'Tom', age: 18, gender: 'M'},
+	{name: 'Isaac', age: 6, gender: 'M'},
+	{name: 'Chole', age: 8, gender: 'F'},
+	{name: 'Laura', age: 16, gender: 'F'},
+	{name: 'Aileen', age: 33, gender: 'F'}
+];
+
+/*
+	Filter out the desired elements and group them as an array. Use
+	the built in "filter" method.
+
+	Say we want to find out all male students, then we pass a helper
+	function which takes an array element as input, returns a Boolean
+	value as output to do the filtering.
+*/
+console.log(sampleArray.filter(student => student.gender == 'M'));
+
+/*
+	Transform each element with a user defined function, the transformed
+	result is formed as a new array. Use the built in "map" method.
+
+	Say we want to have an array of student names, we just create a
+	helper function to map a student record to a string (name).
+*/
+console.log(sampleArray.map(student => student.name));
+
+/*
+	Summarize all elements into a single value. Use the built in "reduce"
+	method. The way to reduce works is as following:
+
+	function reduce(array, combine, start){
+		let current = start;
+		for (let element of array){
+			current = combine(current, element);
+		}
+		return current;
+	}
+
+	if the array has at least one element, the user can choose to omit
+	the "start" argument. In that case, the combine function will use the
+	first array element as the start value.
+
+	Since reduct is a built-in function, therefore we only pass the combine
+	function and the start value to it.
+*/
+
+// compute the average student age.
+console.log(sampleArray.reduce(
+	(ageSum, student) => { return ageSum+student.age; }, 0)/sampleArray.length);
+
+
+// pick the youngest student.
+console.log(sampleArray.reduce((s1, s2) => {return s1.age<s2.age ? s1:s2;}));
+
+/*
+	Higher-order function can make the code easier to read when composite
+	multiple operations. For example, find out the average age of female
+	students.
+*/
+function average(anArray){
+	return anArray.reduce((a1, a2) => {return (a1 + a2)})/anArray.length;
+}
+
+console.log(average(sampleArray.filter((student => student.gender=='F')).map(student => student.age)));
+</script>
