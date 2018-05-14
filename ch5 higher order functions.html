@@ -56,11 +56,20 @@ console.log('return value = ', x);	// result value same as Math.min
 // an array of student records
 let sampleArray = [
 	{name: 'Tom', age: 18, gender: 'M'},
-	{name: 'Isaac', age: 6, gender: 'M'},
 	{name: 'Chole', age: 8, gender: 'F'},
+	{name: 'Isaac', age: 6, gender: 'M'},
 	{name: 'Laura', age: 16, gender: 'F'},
 	{name: 'Aileen', age: 33, gender: 'F'}
 ];
+
+/*
+	forEach: do something for each element in the array.
+*/
+function greeting(student){
+	let message = student.gender == 'M' ? 'boy' : 'girl';
+	console.log('Hello,', message);
+}
+sampleArray.forEach(greeting);
 
 /*
 	Filter out the desired elements and group them as an array. Use
@@ -83,7 +92,7 @@ console.log(sampleArray.map(student => student.name));
 
 /*
 	Summarize all elements into a single value. Use the built in "reduce"
-	method. The way to reduce works is as following:
+	method. The way reduce works (pseudo code):
 
 	function reduce(array, combine, start){
 		let current = start;
@@ -97,8 +106,8 @@ console.log(sampleArray.map(student => student.name));
 	the "start" argument. In that case, the combine function will use the
 	first array element as the start value.
 
-	Since reduct is a built-in function, therefore we only pass the combine
-	function and the start value to it.
+	Since reduce is a built-in function, calling it only requires the
+	the combine function and start value (optional).
 */
 
 // compute the average student age.
@@ -109,14 +118,36 @@ console.log(sampleArray.reduce(
 // pick the youngest student.
 console.log(sampleArray.reduce((s1, s2) => {return s1.age<s2.age ? s1:s2;}));
 
+
+
 /*
-	Higher-order function can make the code easier to read when composite
-	multiple operations. For example, find out the average age of female
-	students.
+	Find whether there exists at least one element that satisfy a
+	condition.
+
+	Use the "some" built-in function. Similarly we can use "every"
+	function to test whether all elements satisfy some condition.
+*/
+console.log(sampleArray.some(student => student.age > 15 && student.gender == 'F'));
+
+/*
+	Higher-order function starts to shine when we chain multiple 
+	operations together.
+
+	Find out the average age of female students:
+	1. Filter out female students.
+	2. Map student records as array of number (age).
+	3. Compute average.
+
+	The use of filter and map, however, does come at a cost. Because they
+	create new array on the fly. If we use a single for loop we can do
+	the same task with less overhead. But most of the case, this performance
+	expense is tolerable.
 */
 function average(anArray){
 	return anArray.reduce((a1, a2) => {return (a1 + a2)})/anArray.length;
 }
 
 console.log(average(sampleArray.filter((student => student.gender=='F')).map(student => student.age)));
+
+
 </script>
