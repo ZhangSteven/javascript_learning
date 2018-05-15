@@ -1154,40 +1154,58 @@ function characterScript(code){
             return code >= from && code < to;
           })){
             
-            return script;
+            return script['name'];
         }
     }
+
+    return 'none';
 }
 
-console.log(characterScript(121));
-
-
+console.log(characterScript('a'));  // wrong way of calling
+console.log(characterScript('a'.codePointAt(0)));   // Latin
+console.log(characterScript(97));   // same as above
+console.log(characterScript('中'.codePointAt(0)));   // Han
 
 /*
     Recognize text in a string.
-
-    Here we use two higer-order functions to achieve the result:
-
-    1. 
-    2.
 */
 
 
 // Categorize elements in an array. User needs to supply grouping
-// function "groupName".
+// function "groupName" which gives a group name for each element.
 function countBy(items, groupName){
     let result = [];
     for (let item of items){
         let group = groupName(item);
-        if (group in result){
-            result[group] = result[group] + 1;
+        let i = result.findIndex(item => item.name == group);
+        if (i == -1) {  // not found
+            result.push({'name': group, 'count': 1});
         } else {
-            result[group] = 1;
+            result[i].count++;
         }
+
     }
     return result;
 }
 
 console.log(countBy([1,2,3,4,5], x => (x%2 == 1) ? 'odd':'even'));
+
+
+
+// Count how many characters of each script in a string.
+function textScripts(text){
+    let scriptCount = countBy(text, char => characterScript(char.codePointAt(0))).filter(item => item.name != 'none');
+    let total = scriptCount.reduce((sum, item) => {
+        return sum + item.count;
+    }, 0);
+
+    return scriptCount.map(({name, count}) => {
+        return `${name} ${Math.round(count/total*100)}%`
+    }).join(', ');
+}
+
+console.log(textScripts('haha'));
+console.log(textScripts('OK, 我明天回家'));
+console.log(textScripts('英国的狗说"woof", 俄罗斯的狗说"тяв"'))
 
 </script>
