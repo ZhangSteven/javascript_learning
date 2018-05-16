@@ -1,0 +1,34 @@
+<script>
+/*
+The problem: starting with number 1, the perform an operation in
+each step:
+	1. Add by 5, Or
+	2. Multiply by 3.
+
+Given a target number, work out a sequence of operations that results
+in the target number. Say the target is 13, then the sequence is
+
+	1*3 + 5 + 5
+
+We can use recursive function to search all possible branches to solve
+the problem.
+
+*/
+console.log(find_solution(24) || "no path found")
+
+function find_solution(target){
+	function find(current, history){
+		if (current == target){
+			return history;
+		} else if (current > target) {	// incorrect path
+			return null;
+		} else {
+			// search two possible branches with resursion
+			return find(current+5, `(${history} + 5)`) ||
+				find(current*3, `(${history} * 3)`)
+		}
+	}
+
+	return find(1, "1");
+}
+</script>

@@ -1,0 +1,38 @@
+<script>
+/*
+	Takes two values and returns true only if they are the same value, i.e.,
+	referring to the same object, or are objects with the same properties,
+	where the values of the properties are equal when compared with a recursive
+	call to deepEqual.
+*/
+function deepEqual(obj1, obj2){
+	// no conversion, say 1 converts to true
+	if (obj1 === obj2) return true;
+	if (obj1 == null || obj2 == null) return obj1==obj2;
+	if (typeof obj1 != typeof obj2) return false;
+
+	// They are both not null, of the same type, of different value.
+	if (typeof obj1 != 'object') return obj1==obj2;
+	if (Object.keys(obj1).length != Object.keys(obj2).length) return false;
+	for (let key of Object.keys(obj1)){
+		if (!deepEqual(obj1[key], obj2[key])) return false;
+	}
+
+	return true;
+}
+
+console.log(deepEqual(1,true));	//false
+console.log(deepEqual(1,2));
+console.log(deepEqual(null, null));
+console.log(deepEqual(0,null));
+console.log(deepEqual('123', 123));
+console.log(deepEqual(1,1));
+console.log(deepEqual('123','123'));
+
+let obj = {here: {is: "an"}, object: 2};
+console.log(deepEqual(obj, obj));
+console.log(deepEqual(obj, {here: 1, object: 2}));
+console.log(deepEqual(obj, {here: {is: "an"}, object: 2}));
+
+
+</script>

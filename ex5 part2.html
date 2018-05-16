@@ -1,13 +1,11 @@
 <script>
 
 /*
-    Chapter 5 Higer-order functions
+    Chapter 5 exercise part 2.
 
-    The example data set contains some pieces of information about the 140 scripts defined in Unicode. The binding contains an array of objects, each of which describes a script.
+    Work out the dominant direction of writing in a character string.
 
-    Generated from the Unicode 10 database and https://en.wikipedia.org/wiki/Script_(Unicode).
-
-    The functions are the bottom of file.
+    The function is at the bottom of the file.
 */
   
 var SCRIPTS = [
@@ -1129,30 +1127,13 @@ var SCRIPTS = [
 
 
 /*
-    Counter how many characters a script has.
-*/
-function characterCount(script){
-    return script.ranges.reduce((count, [from, to]) => {
-        return count + to - from;
-    }, 0);
-}
-
-//find out the script having the most characters.
-console.log(SCRIPTS.reduce((s1, s2) => {
-    return characterCount(s1) > characterCount(s2) ? s1:s2; }));
-
-
-
-/*
-    Find which script a character belongs to. In other words,
-    if a character code falls within code range of a script,
-    then the charater belongs to that script.
+    The countBy() functions is from the text book, wihle 
 */
 function characterScript(code){
     for (let script of SCRIPTS){
         if (script.ranges.some(([from, to]) => {
-            return code >= from && code < to;
-          })){
+              return code >= from && code < to;
+            })){
             
             return script;
         }
@@ -1161,18 +1142,8 @@ function characterScript(code){
     return null;
 }
 
-// console.log(characterScript('a').name);  // error
-console.log(characterScript('a'.codePointAt(0)).name);   // Latin
-console.log(characterScript(97).name);   // same as above
-console.log(characterScript('中'.codePointAt(0)).name);   // Han
-
-/*
-    Recognize text in a string.
-*/
 
 
-// Categorize elements in an array. User needs to supply grouping
-// function "groupName" which gives a group name for each element.
 function countBy(items, groupName){
     let result = [];
     for (let item of items){
@@ -1188,27 +1159,21 @@ function countBy(items, groupName){
     return result;
 }
 
-console.log(countBy([1,2,3,4,5], x => (x%2 == 1) ? 'odd':'even'));
 
 
-
-// Count how many characters of each script in a string.
-function textScripts(text){
+// Find the dominant direction of writing for a character string.
+function dominantDirection(text){
     let scriptCount = countBy(text, char => {
             let s = characterScript(char.codePointAt(0));
-            return s ? s.name : 'none';
+            return s ? s.direction : 'none';
         }).filter(item => item.name != 'none');
-    let total = scriptCount.reduce((sum, item) => {
-        return sum + item.count;
-    }, 0);
 
-    return scriptCount.map(({name, count}) => {
-        return `${name} ${Math.round(count/total*100)}%`
-    }).join(', ');
+    return scriptCount.reduce((a,b) => a.count > b.count ? a:b);
 }
 
-console.log(textScripts('haha'));
-console.log(textScripts('OK, 我明天回家'));
-console.log(textScripts('英国的狗说"woof", 俄罗斯的狗说"тяв"'))
+console.log(dominantDirection('haha'));
+console.log(dominantDirection('OK, 我明天回家'));
+console.log(dominantDirection('Hey, مساء الخير,, 哈哈'));
+
 
 </script>

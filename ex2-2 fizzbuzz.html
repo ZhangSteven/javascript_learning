@@ -1,0 +1,37 @@
+<script>
+/*
+Chapter 2. Exercise 2, print "fizz" when a number is divisible by 3,
+"buzz" if divisible by 5, and "fizzbuzz" if divisible by both 3 and 5.
+*/
+
+/* My solution.
+
+for (i=1; i<=30; i=i+1){
+	if (i%15 == 0){
+		console.log("fizzbuzz");
+	}
+	else if(i%3 == 0){
+		console.log("fizz");
+	}
+	else if(i%5 == 0){
+		console.log("buzz");
+	}
+	else{
+		console.log(i)
+	}
+}
+*/
+
+//The book's solution.
+for (let i=1; i<=30; i=i+1){
+	let output = "";
+	if (i%3 == 0) output += "fizz";
+	if (i%5 == 0) output += "buzz";
+
+	//Expression "a || b": evaluate a, if the result is equivalent to
+	//True, then return that result; Otherwise evaluate b and return the
+	//result.
+	console.log(output || i)
+}
+
+</script>

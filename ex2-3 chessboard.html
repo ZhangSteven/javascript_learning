@@ -1,0 +1,30 @@
+<script>
+let size = 8, result = "";
+for (let i=0; i<size; i=i+1){
+	let starter = " ", follower = "#";
+
+	if (i%2 == 1){
+		/*
+		This code declares a local starter and follower
+		variable which stops existing outside the if block,
+		therefore the starter and follower will always be
+		" " and "#"
+
+		let starter = "#", follower = " ";
+		*/
+		starter = "#", follower = " ";
+	}
+
+	for (let j=0; j<size; j=j+1){
+		if (j%2 == 0){
+			result = result + starter;
+		}
+		else{
+			result = result + follower;
+		}
+	}
+	result = result + "\n";
+}
+console.log(result);
+
+</script>

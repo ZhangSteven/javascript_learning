@@ -1,4 +1,56 @@
 <script>
+/*
+	Exercise in chapter 5. Higher-order functions
+*/
 
+
+// Ex1. Flattern an array of arrays into a simple array.
+let arrays = [[1,2,3], [4,5], [6]];
+let result = arrays.reduce((a,b) => a.concat(b));
+console.log(result);
+
+
+/*
+	Ex2. Customized loop function.
+*/
+function loop(value, test, update, body){
+	while (test(value)){
+		body(value);
+		value = update(value);
+	}
+}
+loop(3, n => n>0, n => n-1, console.log);
+
+
+
+/*
+	Ex3. Customized every() function.
+*/
+function every(array, test){
+	for (let item of array){
+		if (!test(item)) return false;
+	}
+	return true;
+}
+console.log(every([1,2,3], n => n>0));	// true;
+console.log(every([1,2,3], n => n%2==0));	// false;
+console.log(every([], n => n>0));	// true
+
+// another version using some()
+function every2(array, test){
+	/* This works but below is better.
+
+	function testInvert(a){
+		if (test(a)) return false;
+		return true;
+	}
+	*/
+	let testInvert = a => !test(a);
+	if (array.some(testInvert)) return false;
+	return true;
+}
+console.log(every2([1,2,3], n => n>0));	// true;
+console.log(every2([1,2,3], n => n%2==0));	// false;
+console.log(every2([], n => n>0));	// true
 
 </script>

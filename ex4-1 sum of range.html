@@ -1,0 +1,38 @@
+<script>
+/*
+	A function to produce an array.
+*/
+// function range(start, end, step=1){
+// Below is better the step can default to 1 or -1 based on
+// start and end values.
+function range(start, end, step=start < end ? 1:-1){
+	let result = [];
+	if (start<=end && step>0){
+		for (i=start; i<=end; i=i+step){
+			result.push(i);
+		}
+	} else if (start>=end && step<0){
+		for (i=start; i>=end; i=i+step){
+			result.push(i);
+		}
+	}
+	return result;
+}
+
+/*
+	Sum up all the input numbers. Can take any number of inputs.
+*/
+function sum(numbers){
+	let result = 0;
+	for (let n of numbers){
+		result = result + n;
+	}
+	return result;
+}
+
+console.log(sum(range(1,10)));
+console.log(sum(range(1,10,2)));
+console.log(sum(range(9,1,-2)));
+console.log(sum(range(9,1)));
+
+</script>

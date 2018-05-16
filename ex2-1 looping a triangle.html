@@ -1,0 +1,31 @@
+<script>
+/*
+Chapter 2. Exercise 1, print the following pattern:
+
+#
+##
+###
+####
+#####
+######
+#######
+
+*/
+
+/* My solution, works but not elegant.
+
+for (let i=0; i<7; i=i+1){
+	let a = "";
+	for (let j=0; j<i+1; j=j+1){
+		a = a + "#";
+	}
+	console.log(a);
+}
+*/
+
+// The book's solution.
+for (line="#"; line.length<8; line=line+"#"){
+	console.log(line);
+}
+
+</script>

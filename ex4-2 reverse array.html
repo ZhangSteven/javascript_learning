@@ -1,0 +1,40 @@
+<script>
+/*
+	Take an array as input, create a new array with the same
+	set of elements, but in reverse order.
+*/
+function reverseArray(anArray){
+	let result = [];
+	/*
+	This is not a good approach because:
+	1) pop() changes the original array, which is not desired.
+	2) pop() changes the original array length.
+
+	for (let i=0; i<anArray.length; i=i+1){
+		result.push(anArray.pop());
+	}
+	*/
+
+	for (let i=anArray.length; i>0; i=i-1){
+		result.push(anArray[i-1]);
+	}
+	return result;
+}
+
+/*
+	Similar the function above, but change the array in place.
+*/
+function reverseArrayInPlace(anArray){
+	for (let i=0; i<Math.floor(anArray.length/2); i=i+1){
+		let temp = anArray[i];
+		anArray[i] = anArray[anArray.length-1-i];
+		anArray[anArray.length-1-i] = temp;
+	}
+}
+
+console.log(reverseArray(['A', 'B', 'C']));
+let a = [1,2,'haha'];
+reverseArrayInPlace(a);
+console.log(a);
+
+</script>

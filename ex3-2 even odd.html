@@ -1,0 +1,17 @@
+<script>
+function is_even(x){
+	if (x < 0) {x = -x;}
+	if (x == 0) {
+		return true;
+	} else if (x == 1) {
+		return false;
+	} else {
+		return is_even(x-2);
+	}
+}
+
+console.log("50 is", is_even(50) ? "even" : "odd");
+console.log("75 is", is_even(75) ? "even" : "odd");
+console.log("-1 is", is_even(-1) ? "even" : "odd");
+
+</script>

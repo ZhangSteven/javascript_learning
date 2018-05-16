@@ -1,0 +1,25 @@
+<script>
+/*
+	Count how many "B" occurs in string s.
+*/
+function count_Bs(s){
+	return count_char(s, 'B');
+}
+
+/*
+	Count how many character c occurs in string s.
+*/
+function count_char(s, c){
+	let counter = 0;
+	for (i=0; i<s.length; i=i+1){
+		if (s[i] == c){
+			counter += 1;
+		}
+	}
+
+	return counter;
+}
+
+console.log('count B in BBC:', count_Bs('BBC'));
+console.log('count k in kakkerlak:', count_char('kakkerlak', 'k'));
+</script>

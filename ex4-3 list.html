@@ -1,0 +1,64 @@
+<script>
+/*
+	Build a linked list structure from an array.
+*/
+/* Works, but not elegant.
+function arrayToList(anArray){
+	if (anArray.length == 0) return {};
+
+	firstNode = {value:anArray[0], rest:null};
+	list = firstNode;
+	for (i=1; i<anArray.length; i=i+1){
+		nextNode = {value:anArray[i], rest:null};
+		firstNode.rest = nextNode;
+		firstNode = nextNode;
+	}
+	return list;
+}
+*/
+
+// the solution code: instead of going through the list from
+// beginning to the end, it goes from end to beginning.
+function arrayToList(anArray){
+	let list = null;
+	for (let i=anArray.length; i>0; i--){
+		list = {value: anArray[i-1], rest: list};
+	}
+	return list;
+}
+
+console.log(arrayToList([1,2,3]))
+
+
+
+/*
+	Build an array from a list structure.
+*/
+/* Works, but not so elegant.
+function listToArray(anList){
+	let anArray = [], node = anList;
+	while ("value" in node){
+		anArray.push(node.value);
+		if (node.rest == null) {
+			break;
+		} else {
+			node = node.rest;
+		}
+	}
+	return anArray;
+}
+*/
+
+// Use a for loop to make the code better.
+function listToArray(aList){
+	let anArray = [];
+	for (let node=aList; node; node=node.rest){
+		anArray.push(node.value);
+	}
+	return anArray;
+}
+
+console.log(listToArray(arrayToList([])));
+console.log(listToArray(arrayToList([1,2,3])));
+console.log(listToArray({value:1,rest:{value:2,rest:{value:3,rest:null}}}));
+</script>
