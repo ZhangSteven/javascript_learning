@@ -166,6 +166,10 @@ blackRabbit.move(5);
 blackRabbit.eat('carrot');
 console.log(Rabbit.prototype);
 
+// objects created with the old Rabbit.prototype not affected.
+weirdRabbit.speak('hello again');	// still works.
+// weirdRabbit.move(3);				// doesn't work
+
 
 
 /*
