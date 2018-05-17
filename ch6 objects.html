@@ -1,0 +1,84 @@
+<script>
+
+/*
+	Chapter 6. The Secret Life of Objects
+*/
+
+/*
+	Create an object and assign a property whose value is a function. 
+*/
+let rabbit = {};	// an empty object.
+rabbit.speak = function(line){	// assign a function as its property.
+	console.log(`The rabbit says ${line}`);
+};
+rabbit.speak('你好!');
+
+
+
+let yy = '88';
+let r2 = {yy};	// same as {'yy': yy} or {yy: yy}
+// let r2 = {yy: yy};
+console.log(r2);
+
+
+
+/*
+	When a function is called as a method - looked up as a property
+	and immediately called, as in object.method() - the binding called
+	"this" in its body automatically points at the object that it was
+	called on.
+*/
+function speak(line){
+	console.log(`The ${this.type} rabbit says "${line}".`);
+}
+let whiteRabbit = {type: 'white', speak: speak};
+let hungryRabbit = {type: 'hungry', speak};
+whiteRabbit.speak('HaHa');
+hungryRabbit.speak('I want to eat');
+
+
+// You can think of "this" as an extra argument that is passed in a 
+// different way. You can pass it explicitly as below.
+speak.call(hungryRabbit, 'I want to eat');
+
+
+
+/*
+	When passing a function as an argument, who needs to access to
+	"this" in the wrapping scope, use arrow functions.
+*/
+function normalize(){
+	console.log(this.coords.map(n => n/this.length));
+}
+normalize.call({coords: [1,3,10], length: 5});
+
+/*
+	The below doesn't work. When we use function(n) {return n/this.length;}
+	to replace n => n/this.length, the function fails to access "this"
+	in the wrapping scope.
+
+function normalize2(){
+	console.log(this.coords.map(function(n){return n/this.length;}));
+}
+normalize2.call({coords: [1,3,10], length: 5});
+*/
+
+
+
+/*
+	Prototypes.
+
+	A prototype is another object that is used as a fallback source
+	of properties. When an object gets a request for a property that 
+	it does not have, its prototype will be searched for the property,
+	then prototype's prototype, and so on.
+
+	Most objects (including functions) in Javascript has a prototype.
+	All prototypes form a tree structure with Object.prototype sits at
+	the root.
+*/
+console.log(Object.getPrototypeOf({}) == Object.prototype);
+console.log(Object.getPrototypeOf(Object) == null);
+console.log(Object.getPrototypeOf(Math.max) == Function.prototype);
+console.log(Object.getPrototypeOf([]) == Array.prototype);
+</script>
