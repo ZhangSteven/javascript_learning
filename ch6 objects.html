@@ -73,12 +73,147 @@ normalize2.call({coords: [1,3,10], length: 5});
 	it does not have, its prototype will be searched for the property,
 	then prototype's prototype, and so on.
 
-	Most objects (including functions) in Javascript has a prototype.
-	All prototypes form a tree structure with Object.prototype sits at
-	the root.
+	The prototype relations of Javascript objects form a tree-shaped
+	structure, and at the root of this structure sits Object.prototype.
 */
 console.log(Object.getPrototypeOf({}) == Object.prototype);
-console.log(Object.getPrototypeOf(Object) == null);
+console.log(Object.getPrototypeOf({}));	// Object
+console.log(Object.getPrototypeOf(Object));
 console.log(Object.getPrototypeOf(Math.max) == Function.prototype);
 console.log(Object.getPrototypeOf([]) == Array.prototype);
+console.log(Object.getPrototypeOf('') == String.prototype);
+
+
+
+/*
+	Create an object with Object.create().
+*/
+let protoRabbit = {	// an object with a method called speak()
+	/*
+	speak: function(line){
+		console.log(`The ${this.type} rabbit says "${line}"`);
+	}
+	*/
+
+	// same as above, just a short notation.
+	speak(line){
+		console.log(`The ${this.type} rabbit says "${line}"`);
+	}
+
+};
+
+// create a new object just like object "protoRabbit" (the prototype)
+let killerRabbit = Object.create(protoRabbit);
+killerRabbit.type = 'killer';
+killerRabbit.speak('SKREEEE!');
+
+// In the above, we need to create and initialize the new object in
+// 2 steps. We can use a function to wrap it.
+function makeRabbit(type){
+	let rabbit = Object.create(protoRabbit);
+	rabbit.type = type;
+	return rabbit;
+}
+makeRabbit('killer').speak('haha');
+
+
+
+/*
+	Create an object with keyword "new" and a constructor function.
+*/
+
+// The constructor function (needs to be called with keyword "new")
+function Rabbit(type){
+	this.type = type;
+}
+
+/*
+	A constructor fucntion like Rabbit (all functions, in fact), 
+	automatically gets a property named "prototype", which by default
+	holds a plain, empty object that derives from Object.prototype.
+
+	When we do:
+
+	let weirdRabbit = new Rabbit('weird');
+
+	It is the same as:
+
+	let weirdRabbit = Object.create(Rabbit.prototype);
+	weirdRabbit.type = 'weird';
+*/
+console.log(Rabbit.prototype);	// strange? it already gets the speak 
+								// property
+Rabbit.prototype.speak = function(line){
+	console.log(`The ${this.type} rabbit says "${line}"`);
+};
+let weirdRabbit = new Rabbit('weird');
+weirdRabbit.speak('Hello');
+console.log(weirdRabbit);
+
+
+// you can do the following as well.
+Rabbit.prototype = {
+	move(distance){
+		console.log(`The ${this.type} rabbit moves ${distance} meters`);
+	},
+
+	eat(food){
+		console.log(`The ${this.type} rabbit eats ${food}`);
+	}
+};
+let blackRabbit = new Rabbit('black');
+blackRabbit.move(5);
+blackRabbit.eat('carrot');
+console.log(Rabbit.prototype);
+
+
+
+/*
+	The class notation.
+
+	In order to wrap the constructor function and the methods definition
+	together, we can use the class notation. But under the cover, it does
+	exactly the same things:
+
+	1. Bind methods as properties of the Rabbit.prototype object.
+	2. Create a new object with Object.create(), model after Rabbit.prototype.
+	3. Initialize the new object's properties.
+
+	For the moment, class declarations only allows methods - properties that
+	hold functions - to be added to the prototype.
+*/
+class GoodRabbit {
+
+	// this defines constructor function GoodRabbit()
+	constructor(type){
+		this.type = type;
+	}
+
+	speak(line){
+		console.log(`The ${this.type} rabbit says "${line}"`);
+	}
+}
+
+let okRabbit = new GoodRabbit('ok');
+okRabbit.speak('Oooops');
+console.log(GoodRabbit.prototype);	// same as Rabbit.prototype above.
+									// However, the "small" property got
+									// shown here.
+
+
+/*
+	Overriding derived properties.
+*/
+
+GoodRabbit.prototype.teeth = 'small';
+let badRabbit = new GoodRabbit('bad');
+console.log(badRabbit.teeth);			// badRabbit doesn't have "teeth"
+										// property, fall back on its prototype
+										// GoodRabbit.prototype
+
+okRabbit.teeth = 'big, sharp, bloody';	// add a new property "teeth" to
+										// okRabbit.
+console.log(okRabbit.teeth);
+console.log(badRabbit.teeth);			// not affected.
+
 </script>
