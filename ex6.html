@@ -1,0 +1,150 @@
+<script>
+/*
+	Exercise for chapter 6.
+*/
+class Vec {
+
+	constructor (x, y){
+		this.x = x;
+		this.y = y;
+	}
+
+	plus(v){
+		return new Vec(this.x + v.x, this.y + v.y);
+	}
+
+	minus(v){
+		return new Vec(this.x - v.x, this.y - v.y);
+	}
+
+
+	get length(){
+		return Math.sqrt(this.x*this.x + this.y*this.y);
+	}
+}
+
+console.log(new Vec(1,2).plus(new Vec(2,3)));
+console.log(new Vec(1,2).minus(new Vec(2,3)));
+console.log(new Vec(3,4).length);
+console.log('Ex1 finished');
+
+
+
+/*
+	Group.
+
+	Here we use a linked list to represent a group.
+*/
+class Group{
+
+	constructor(){
+		this.list = null;
+	}
+
+	//input: an object
+	//output: the index of item in the list, 0 being the first.
+	//			-1 if item not found.
+	indexOf(item){
+		let i = 0, temp = this.list;
+		while (temp != null){
+			if (temp.value === item) return i;
+			temp = temp.rest;
+			i++;
+		}
+		return -1;
+	}
+
+	//input: an index
+	//output: the nth node of the list, 0 being the first node
+	nodeAt(n){
+		if (n < 0 || n > this.length - 1){
+			return null;
+		}
+
+		let temp = this.list;
+		for (let i=0; i<n; i++){
+			temp = temp.rest;
+		}
+		return temp;
+	}
+
+	// the item held by the nth node.
+	itemAt(n){
+		let temp = this.nodeAt(n);
+		return temp ? temp.value : null;
+	}	
+
+	//how many items in the list
+	get length(){
+		let i = 0, temp = this.list;
+		while (temp != null){
+			temp = temp.rest;
+			i++;
+		}
+		return i;
+	}
+
+	//input: an object
+	//output: tell whether the object is in the group.
+	has(item){
+		if (this.indexOf(item) > -1) return true;
+		return false;	
+
+	}
+
+	//input: an object
+	//action: if the object is in the group, do nothing. otherwise add
+	//	to the group.
+	add(item){
+		if (!this.has(item)) {
+			let temp = {};
+			temp.value = item;
+			temp.rest = this.list;
+			this.list = temp;
+		}
+	}
+
+	//input: an object
+	//action: if the object is in the group, remove it. Othereise do
+	//	nothing.
+	delete(item){
+		let i = this.indexOf(item);
+		if (i == -1) return;	// do nothing
+		if (i == 0) {	// the first item
+			this.list = this.list.rest;
+		} else {
+			let temp = this.nodeAt(i-1);	// the item before the found item
+			temp.rest = temp.rest.rest;
+		}
+	}
+
+	// input: an iterable object
+	// action: add all items in that iterable object to the group.
+	static from(collection){
+		let g = new Group();
+		for (let item of collection){
+			g.add(item);
+		}
+
+		return g;
+	}
+}
+
+let group = Group.from([10,11,12,13,14,15]);
+console.log(group.length);
+console.log(group.has(10));
+
+group.delete(10);
+console.log(group.length);
+console.log(group.has(10));
+
+group.delete(15);
+console.log(group.length);
+console.log(group.has(15));
+
+console.log(group.has(13));
+group.delete(13);
+console.log(group.length);
+console.log(group.has(13));
+
+</script>

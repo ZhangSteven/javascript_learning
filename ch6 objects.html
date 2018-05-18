@@ -166,7 +166,7 @@ blackRabbit.move(5);
 blackRabbit.eat('carrot');
 console.log(Rabbit.prototype);
 
-// objects created with the old Rabbit.prototype not affected.
+// weirdRabbit created with the old prototype stays unchanged.
 weirdRabbit.speak('hello again');	// still works.
 // weirdRabbit.move(3);				// doesn't work
 
@@ -219,5 +219,202 @@ okRabbit.teeth = 'big, sharp, bloody';	// add a new property "teeth" to
 										// okRabbit.
 console.log(okRabbit.teeth);
 console.log(badRabbit.teeth);			// not affected.
+
+
+
+/*
+	Map.
+	
+	We can use a plain empty object to store (key, value) pairs in Javascript,
+	but the key must of type String.
+
+	A Map object in Javascript solves the above problem:
+
+	1. It can use any object as a key.
+	2. It's more efficient to search and retrieve if there are large number
+		of (key, value) pairs in it.
+*/
+
+// use a plain object.
+let dictionary = {};
+dictionary['x'] = 1;
+dictionary['y'] = 88;
+dictionary.speak = function(line) { console.log(line)};
+
+for (let key in dictionary){ //same as (let key of Object.keys(dictionary))
+	console.log(`${key}: ${dictionary[key]}`);
+}
+
+// note that keys in the an object's prototype won't be returned
+// by Object.keys() call. 
+let protoObj = {name: 'ok'};
+let d = Object.create(protoObj);
+console.log(d.hasOwnProperty('name'));	// false
+console.log(Object.keys(d));			// []
+console.log(d.name);					// ok.
+
+
+
+// use a Map object.
+let ages = new Map();
+ages.set('Boris', 88);
+ages.set('Isaac', 6);
+ages.set('Julia', 15);
+console.log('Boris age is', ages.get('Boris'));
+console.log('Is Jack age know?', ages.has('Jack'));
+
+for (let [key, value] of ages.entries()){
+	console.log(key, value);
+}
+
+
+
+/*
+	Polymorphism.
+*/
+
+// overwrite the toString() function for the Rabbit prototype
+Rabbit.prototype.toString = function(){
+	return `a ${this.type} rabbit`;
+}
+console.log(String(blackRabbit));
+
+
+
+/*
+	Iterator.
+*/
+let okIterator = 'OK'[Symbol.iterator]();	// retrieve the iterator
+console.log(okIterator.next());	// {value: "O", done: false};
+console.log(okIterator.next());	// {value: "K", done: false};
+console.log(okIterator.next());	// {value: undefined, done: true};
+
+
+
+/*
+	Matrix.
+*/
+class Matrix {
+	constructor(width, height, element = (x,y) => undefined){
+		this.width = width;
+		this.height = height;
+		this.content = [];
+
+		for (let y=0; y<height; y++){
+			for (let x=0; x<width; x++){
+				this.content[y*height + x] = element(x, y);
+			}
+		}
+	}
+
+	get(x, y){
+		return this.content[y*this.height + x];
+	}
+
+	set(x, y, value){
+		this.content[y*this.height + x] = value;
+	}
+}
+
+let m = new Matrix(2, 2, (x,y) => x+y);
+console.log(m);
+
+// build the Matrix iterator
+class MatrixIterator {
+	constructor(matrix){
+		this.matrix = matrix;
+		this.x = 0;	// current position
+		this.y = 0;
+	}
+
+	next(){
+		if (this.x == 0 && this.y == this.matrix.height){
+			return {done: true};
+		}
+
+		let value = {x: this.x, y: this.y, value: this.matrix.get(this.x, this.y)};
+		this.x++;
+		if (this.x == this.matrix.width){
+			this.x = 0;
+			this.y++;
+		}
+
+		return {value: value, done: false};
+	}
+}
+
+// Make sure the Matrix prototype is associated with the iterator.
+Matrix.prototype[Symbol.iterator] = function(){
+	return new MatrixIterator(this);
+}
+
+for (let element of m){
+	console.log(element);
+}
+
+
+/*
+	Inheritance
+*/
+class SymmetricMatrix extends Matrix {
+	constructor (size, element= (x,y) => undefined){
+		super(size, size, (x,y) => {
+				if (x < y) return element(y, x);	// force it to be
+				else return element(x, y);			// symmetrical
+			});
+	}
+
+	set(x, y, value){	// set two positions
+		super.set(x, y, value);
+		if (x != y){
+			super.set(y, x, value);
+		}
+	}
+
+	// get() use the prototype's
+}
+
+let sm = new SymmetricMatrix(3, (x,y) => x*y + x + y);
+console.log(sm);
+for (let element of sm){
+	console.log(element);
+}
+
+
+
+/*
+	Getter and Setter shortcuts and Static methods.
+
+	Getter and Setter functions can be accessed like a property, such as
+
+	a.size = 5;	// getter function
+	a.size = 18;// setting function
+*/
+class Temperature{
+	constructor(celsius){
+		this.celsius = celsius;
+	}
+
+	// a getter function
+	get fahrenheit(){
+		return this.celsius * 1.8 + 32;
+	}
+
+	set fahrenheit(value){
+		this.celsius = (value - 32)/1.8;
+	}
+
+	static fromFahreheit(value){
+		return new Temperature((value -32)/1.8);
+	}
+}
+
+let temp = new Temperature(10);
+console.log(`temperature is ${temp.fahrenheit}F`);
+temp.fahrenheit = 32;
+console.log(`temperature is ${temp.celsius}C`);
+
+let temp2 = Temperature.fromFahreheit(50);
+console.log(`temperature is ${temp2.celsius}C`);
 
 </script>
