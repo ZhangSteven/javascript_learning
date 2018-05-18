@@ -1,6 +1,6 @@
 <script>
 /*
-	Exercise for chapter 6.
+	Exercise 1 for chapter 6.
 */
 class Vec {
 
@@ -31,7 +31,7 @@ console.log('Ex1 finished');
 
 
 /*
-	Group.
+	Exercise 2 Group.
 
 	Here we use a linked list to represent a group.
 */
@@ -45,10 +45,9 @@ class Group{
 	//output: the index of item in the list, 0 being the first.
 	//			-1 if item not found.
 	indexOf(item){
-		let i = 0, temp = this.list;
-		while (temp != null){
+		let i = 0;
+		for (let temp=this.list; temp!=null; temp=temp.rest){
 			if (temp.value === item) return i;
-			temp = temp.rest;
 			i++;
 		}
 		return -1;
@@ -57,15 +56,12 @@ class Group{
 	//input: an index
 	//output: the nth node of the list, 0 being the first node
 	nodeAt(n){
-		if (n < 0 || n > this.length - 1){
-			return null;
+		let i = 0;
+		for (let temp=this.list; temp!=null; temp=temp.rest){
+			if (i == n) return temp;
+			i++;
 		}
-
-		let temp = this.list;
-		for (let i=0; i<n; i++){
-			temp = temp.rest;
-		}
-		return temp;
+		return null;
 	}
 
 	// the item held by the nth node.
@@ -76,9 +72,8 @@ class Group{
 
 	//how many items in the list
 	get length(){
-		let i = 0, temp = this.list;
-		while (temp != null){
-			temp = temp.rest;
+		let i = 0;
+		for (let temp=this.list; temp!=null; temp=temp.rest){
 			i++;
 		}
 		return i;
@@ -97,9 +92,7 @@ class Group{
 	//	to the group.
 	add(item){
 		if (!this.has(item)) {
-			let temp = {};
-			temp.value = item;
-			temp.rest = this.list;
+			let temp = {value: item, rest: this.list};
 			this.list = temp;
 		}
 	}
@@ -118,6 +111,15 @@ class Group{
 		}
 	}
 
+	// return the items stored in node as an array
+	toArray(){
+		let array = [];
+		for (let temp=this.list; temp!=null; temp=temp.rest){
+			array.push(temp.value);
+		}
+		return array;
+	}
+
 	// input: an iterable object
 	// action: add all items in that iterable object to the group.
 	static from(collection){
@@ -130,21 +132,77 @@ class Group{
 	}
 }
 
-let group = Group.from([10,11,12,13,14,15]);
+let group = Group.from([10,11,12,13,14]);
 console.log(group.length);
+console.log(group.toArray());
 console.log(group.has(10));
+group.add(10);	// no effect
+console.log(group.toArray());
 
 group.delete(10);
 console.log(group.length);
 console.log(group.has(10));
+console.log(group.toArray());
 
-group.delete(15);
+group.delete(15);	// no effect
 console.log(group.length);
 console.log(group.has(15));
+console.log(group.toArray());
 
 console.log(group.has(13));
 group.delete(13);
 console.log(group.length);
 console.log(group.has(13));
+console.log(group.toArray());
+console.log('Ex2 finished');
 
+
+/*
+	Exercise 3 Add iterator to class Group.
+*/
+class GroupIterator {
+	constructor(group){
+		this.group = group;
+		this.node = group.list;	// the current node
+	}
+
+	next(){
+		if (this.node == null) return {done: true};
+		let value = this.node.value;
+		this.node = this.node.rest;
+		return {value: value, done: false};
+	}
+}
+
+// add iterator to Group class
+Group.prototype[Symbol.iterator] = function(){
+	return new GroupIterator(this);
+}
+
+let g2 = Group.from(['a', 'b', 'c', 'd', 'e']);
+console.log(g2.length);
+console.log(g2.toArray());
+
+g2.delete('b');
+console.log(g2.toArray());
+
+g2.add('a');	// no effect
+g2.add(88);
+g2.delete('b');	// no effect
+g2.delete('c');
+console.log(g2.toArray());
+for (let value of g2){
+	console.log(value);
+}
+
+
+
+/*
+	Exercise 4. Borrow a method.
+
+	The below object has a property called hasOwnProperty, so we cannot
+	call map.hasOwnProperty(). We need to find a way to call it.
+*/
+let map = {one: true, two: true, hasOwnProperty: true};
+console.log(Object.prototype.hasOwnProperty.call(map, 'one'));
 </script>
