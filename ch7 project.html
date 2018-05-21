@@ -45,4 +45,34 @@ function buildGraph(edges){
 }
 
 const roadGraph = buildGraph(roads);
+console.log(roadGraph);
+
+/*
+	If we define a class for each type of things in the problem, like
+	the robot, the houses, the roads, the parcels, then we may end up
+	a program with lots of interconnected objects each having their
+	own state, which is hard to understand and easy to break.
+
+	Instead, let's condense the village's state down to the minimul set
+	of values that define it. There's the robot's current location and
+	the collection of undelivered parcels, each of which has a current
+	location and a destination address.
+*/
+class VillageState {
+	constructor(place, parcels) {
+		this.place = place;
+		this.parcels = parcels;
+	}
+
+	// provide a destination for the next move. If the destion is out of
+	// reach from current location, then no change.
+	// If it is reachable, then check is there any parcels whose destionation
+	// address match the destination address, if yes, then remove it from
+	// the list of parcels.
+	move(destination){
+		if (!roadGraph[this.place].includes(destination)) return this;
+
+	}
+}
+
 </script>
