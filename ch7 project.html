@@ -206,8 +206,91 @@ console.log('Route robot finishes\n\n');
 /*
 	Find route automatically.
 
-	Given a starting point and destination, find out a path that
-	connects them.
+	Here is a robot that finds its way from point A to B by itself.
 */
+
+// input: graph, from (point A), to (point B)
+// output: an array containing the list of next stops from A to B.
+//
+// A recursive version
+//
+function findRoute2(graph, from, to){
+	if (from == to) return [];
+
+	for (let nextStop of graph[from]){
+		let result = findPath(nextStop, to, [from, nextStop]);
+		if (result) return result.slice(1);
+	}
+
+	function findPath(from, to, history){
+		// console.log(history);
+		if (from == to) return history;
+		for (let nextStop of graph[from]){
+			if (history.includes(nextStop)) continue;
+			let result = findPath(nextStop, to, history.concat(nextStop));
+			if (result) return result;
+		}
+		return null;
+	}
+}
+
+// test it.
+let testGraph = {
+	'A':['B', 'F'],
+	'B':['A', 'D', 'C'],
+	'C':['B', 'E', 'F'],
+	'D':['B'],
+	'E':['C'],
+	'F':['A', 'G'],
+	'G':['F']
+};
+
+console.log(findRoute2(testGraph, 'C', 'A'));
+console.log(findRoute2(testGraph, 'A', 'E'));
+console.log(findRoute2(testGraph, 'A', 'G'));	// B-C-F-G
+console.log('End of findRoute2\n\n');
+
+
+/*
+	The non-recursive version from the book, looks more elegant.
+
+	The search result is also different. This one finds a shorter path than
+	the recursive one.
+
+	Because in the resursive mode, the algorithm tries all all possibilities
+	in one branch first, if not work, then it switches to next branch.
+	When searching for path from A to G, it tries node B first, B eventually
+	reaches G, therefore the route is B-C-F-G. The shorter branch F-G is not
+	tried at all.
+
+	In the non-resursive version, we search all possible paths in parallel, in
+	the case of searching for paths from A to G, it works like
+
+	Round	Possible path added
+	1		B, F
+	2		B-D, B-C
+	3		F-G // found! (note path F-C is not searched becuase node C is
+				// already in path B-C)
+
+
+*/
+function findRoute(graph, from, to){
+	let work = [{at: from, route: []}];
+	for (let i=0; i<work.length; i++){
+		let {at, route} = work[i];
+		for (let place of graph[at]){
+			if (place == to) return route.concat(place);
+			if (!work.some(w => w.at == place)){	// cannot revisit those
+													// places already visited
+				work.push({at: place, route: route.concat(place)});
+				// console.log(`i = ${i}, ${work}`);
+			}
+		}
+	}
+}
+
+console.log(findRoute(testGraph, 'C', 'A'));
+console.log(findRoute(testGraph, 'A', 'E'));
+console.log(findRoute(testGraph, 'A', 'G'));	// F-G
 
 </script>
