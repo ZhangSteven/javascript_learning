@@ -7,4 +7,29 @@ else {
 	console.log("Why don't you give me the number?");
 }
 
+/*
+	Return multiple values and dereference them.
+*/
+function fx(){
+	let x = 'a', y = 88;
+	return {x: x, y: y};
+}
+
+// dereference them
+let {x, y} = fx();
+console.log(x, y);
+
+function gx(){
+	let x = 'a', y = 88, z = [1, 2];
+	return [x, y, z];
+}
+
+// another way to dereference.
+let [a,,b] = gx();
+console.log(a, b);
+
+let [,d,] = gx();
+console.log(d);
+
+
 </script>
