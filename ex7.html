@@ -1,0 +1,132 @@
+<script>
+
+/*
+	Chapter 7. Project.
+
+	Exercise 3. Persistent Group. (Exercise 1 and 2 see ch7 project.html)
+
+	We use a linked list as the underlying data structure. The code is taken from chapter 6 exercise 2.
+
+	When calling method add() and delete(), instead of directly modifying the underlying data structure, we return a new PGroup instance.
+*/
+class PGroup{
+
+	constructor(list=null){
+		this.list = list;
+	}
+
+	// item: any object
+	// output: the index of item in the list, 0 being the first.
+	//			-1 if item not found.
+	indexOf(item){
+		let i = 0;
+		for (let temp=this.list; temp!=null; temp=temp.rest){
+			if (temp.value === item) return i;
+			i++;
+		}
+		return -1;
+	}
+
+	// n: an index number (integer)
+	// output: the nth node of the list, 0 being the first node
+	nodeAt(n){
+		let i = 0;
+		for (let temp=this.list; temp!=null; temp=temp.rest){
+			if (i == n) return temp;
+			i++;
+		}
+		return null;
+	}
+
+	// n: an index number (integer)
+	// output: the item held by the nth node.
+	itemAt(n){
+		let temp = this.nodeAt(n);
+		return temp ? temp.value : null;
+	}	
+
+	// how many items in the group
+	get length(){
+		let i = 0;
+		for (let temp=this.list; temp!=null; temp=temp.rest){
+			i++;
+		}
+		return i;
+	}
+
+	// item: any object
+	// output: tell whether the object exists in the group.
+	has(item){
+		if (this.indexOf(item) > -1) return true;
+		return false;	
+
+	}
+
+	// item: any object
+	// output: if the object is in the group, return the PGroup instance
+	// 	unchanged. Otherwise return a new PGroup instance containing the
+	// 	added object.
+	// 
+	add(item){
+		if (!this.has(item)) {
+			return new PGroup({value: item, rest: this.list});
+		} else {
+			return this;
+		}
+	}
+
+	// item: any object
+	// output: if the object is in the group, return a new PGroup instance
+	// 	that excludes the object but containing the remaining objects in the
+	// 	original PGroup instance. Otherwise just return this PGroup instance.
+	delete(item){
+		let newList = null, newNode;
+		for (let node=this.list; node!=null; node=node.rest){
+			if (node.value == item) continue;
+			newNode = {value: node.value, rest: newList};
+			newList = newNode;
+		}
+
+		return new PGroup(newList);
+	}
+
+	// return the items stored in node as an array
+	get toArray(){
+		let array = [];
+		for (let temp=this.list; temp!=null; temp=temp.rest){
+			array.push(temp.value);
+		}
+		return array;
+	}
+
+	// input: an iterable object
+	// action: add all items in that iterable object to the group.
+	static from(collection){
+		let g = new PGroup();
+		for (let item of collection){
+			g.add(item);
+		}
+
+		return g;
+	}
+
+	// output: return a new PGroup instance with no elements.
+	// Because all empty groups are the same and instances of the class
+	// don't change (add or delete return new instances). We only to 
+	// create one empty instance, rather create a new one every time.
+	/*
+	static get empty(){
+		return new PGroup();
+	}
+	*/
+}
+
+PGroup.empty = new PGroup();
+
+let a = PGroup.empty.add('a');
+console.log(a.toArray);
+let ab = a.add('b');
+console.log(ab.toArray);
+let b = ab.delete('a');
+console.log(b.toArray);
+</script>
