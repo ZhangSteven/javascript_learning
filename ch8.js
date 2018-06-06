@@ -1,6 +1,14 @@
 /*
 	Chapter 8. Bugs and Errors
 */
+
+/*
+	Enable the strict mode.
+
+	When creating a new javascript file, we should almost always use this.
+	If we are running a piece of javascript code in Chrome, it seems that
+	strict mode is enabled by default.
+*/
 "use strict"
 
 function canYouSpotTheProblem(){
@@ -27,7 +35,7 @@ function primitiveMultiply(a, b){
 }
 
 function reliableMultiply(a, b){
-	for (;;){
+	for (;;){	// an infinite loop
 		try {
 			return primitiveMultiply(a, b);
 			// return primitivMultiply(a, b);	// typo
