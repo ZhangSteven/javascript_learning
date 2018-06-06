@@ -282,3 +282,44 @@ function minusOne(match, quantity, item){
 
 // no lemon, 1 cabbage, 100 eggs
 console.log(stock.replace(/(\d+) (\w+)/g, minusOne));
+
+
+/*
+	Non greedy matching, ?
+
+	As it is shown above, the repetition operators (*, +, ?, {m, n}) are greedy,
+	i.e., they match as much as they can and backtrack from there. If you put a
+	question mark (?) after them (*?, +?, ??, {m, n}?), they become non greedy
+	and starts to match as little as possible. In some cases, this behaviour is
+	very useful.
+
+	Below is a function that removes comments from Javascript code.
+*/
+function stripComments(code){
+	// get rid of anything that starts with '//' or in between /* and */
+	return code.replace(/\/\/.*|\/\*.*\*\//g, '')
+}
+
+console.log(stripComments('a + b // some comments'));	// a + b
+console.log(stripComments('1 + /* 2 */ 3'));	// 1 +  3
+console.log(stripComments('1 /* a */ + /* b */ 2'));	// 1  2
+console.log(stripComments('1 /* abc\ndef */ + 2'));		// no match, no change.
+
+// The above code has two problems:
+//	(1) The greedy match is no suitable for /* */, like 1 /* a */ + /* b */ 2
+//	(2) .* does not match \n, so 1 /* abc\ndef */ + 2 is not matched at all.
+// 
+// Here is the solution:
+//
+// (1) use [^]* to replace .*, [^] means any character that is not in a empty set,
+//	so it matches any character, including \n
+// (2) use a non-greedy search for /* */
+function stripComments(code){
+	// get rid of anything that starts with '//' or in between /* and */
+	return code.replace(/\/\/.*|\/\*[^]*?\*\//g, '')
+}
+
+console.log(stripComments('a + b // some comments'));	// a + b
+console.log(stripComments('1 + /* 2 */ 3'));			// 1 +  3
+console.log(stripComments('1 /* a */ + /* b */ 2'));	// 1  +  2
+console.log(stripComments('1 /* abc\ndef */ + 2'));		// 1  + 2
