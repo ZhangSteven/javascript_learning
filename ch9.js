@@ -374,7 +374,7 @@ console.log(text2.replace(regexp2, '_$&_'));	// doesn't work, not matched
 //
 //	\ [ ] must be escaped within []
 //
-//	create the string with special characters escaped
+//	create the string with all special characters escaped
 let escaped = name2.replace(/[\\\[\]{}()^*+.?/|$]/g, '\\$&')
 console.log(escaped)
 let regexpNew = new RegExp('\\b' + escaped + '\\b', 'gi');
@@ -407,3 +407,96 @@ while (m = pattern.exec(input)){
 	// console.log(m)
 	console.log(`number is ${m[1]}, at ${m.index}`)
 }
+
+
+
+/*
+	Parse an INI file, like
+
+	searchengine=https://duckduckgo.com/?q=$1
+	spitefulness=9.7
+
+	; comments are preceded by a semicolon...
+	; each section concerns an individual enemy
+	[larry]
+	fullname=Larry Doe
+	type=kindergarten bully
+	website=http://www.geocities.com/CapeCanaveral/11451
+
+	[davaeorn]
+	fullname=Davaeorn
+	type=evil wizard
+	outputdir=/home/marijn/enemies/davaeorn
+*/
+function parseINI(string){
+	let result = {}
+	let section = result;
+	string.split(/\r?\n/).forEach(line => {
+		let match;
+		if (match = line.match(/^(\w+?)=(.*)$/)){	// property
+			section[match[1]] = match[2];
+		} else if (match = line.match(/^\[(.*)\]$/)){	// new section
+			section = {};
+			result[match[1]] = section;
+		} else if (match = line.match(/^\s*(;.*)?$/)){	// either a blank line
+														// or comments
+			// do nothing
+
+		// } else if (match = line.match(/^\s*;/)){	// comments
+		// 	// do nothing
+		// } else if (match = line.match(/^\s*$/)){	// blank line
+		// 	// do nothing
+		} else {
+			// something must be wrong.
+			throw new Error('Line "' + line + '" is not valid')
+		}
+	});
+	return result;
+}
+
+console.log(parseINI(`
+name=Vasilis
+     
+  ; haha
+[address]
+city=Tessaloniki`));
+
+console.log(parseINI(`
+searchengine=https://duckduckgo.com/?q=$1
+spitefulness=9.7
+
+; comments are preceded by a semicolon...
+; each section concerns an individual enemy
+[larry]
+fullname=Larry Doe
+type=kindergarten bully
+website=http://www.geocities.com/CapeCanaveral/11451
+
+[davaeorn]
+fullname=Davaeorn
+type=evil wizard
+outputdir=/home/marijn/enemies/davaeorn
+`))
+
+
+
+/*
+	International characters.
+
+	Javascript does not support international characters by default, so \w
+	only matches Latin characters ([A-Za-z0-9_]). 
+
+	\s: does match international character white spaces
+
+	So we need to use /u, /p{...} to work with international characters.
+*/
+console.log(/🍎{3}/.test("🍎🍎🍎"));	// false
+console.log(/<.>/.test("<🌹>"));			// false
+console.log(/<.>/u.test("<🌹>"));		// true
+console.log(/<.>/u.test('<国>'));		// true
+
+// unfortunately, \p is not supported in version 8.11.2 yet.
+// console.log(/\p{Script=Greek}/u.test("α"));
+// console.log(/\p{Script=Arabic}/u.test("α"));
+// console.log(/\p{Alphabetic}/u.test("α"));
+// console.log(/\p{Alphabetic}/u.test("!"));
