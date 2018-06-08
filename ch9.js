@@ -210,16 +210,23 @@ console.log(/^.*x/.exec('abcxfxg')[0])	// abcxfx
 
 
 /*
-	The replace() method.
+	The replace() method and the regular expression flags:
 
-	By default, it only replaces the first match, unless a global
-	replace flag (/g) is used together with a regular expression.
+	/g: global matching
+	/i: case insensitive
+
+	By default, replace() only replaces the first match, unless a regexp
+	is used with global matching flag (/g).
 */
 console.log('papa'.replace('p', 'm'));	// mapa
 console.log('papa'.replace(/p/g, 'm'));	// mama
+console.log('Kelvin on leave'.replace(/kelvin/i, 'IT'));	// IT on leave
 
 /*
- 	use $1, $2, ... $9 to refer to matched part from sub expressions
+ 	Replace with an expression
+
+ 	use $& to refer to the part matched by the whole express, $1, $2 ... $9 
+ 	to refer to parts by sub expressions.
 
 	Say, we would like to change:
 
@@ -231,14 +238,18 @@ console.log('papa'.replace(/p/g, 'm'));	// mama
 	Steven Zhang
 	Kelvin Yeung
 */
-console.log('Zhang, Steven\nYeung, Kelvin'.replace(/(\w+), (\w+)/g, `$2 $1`));
+// Syntax: note in the expression, use '' to enclose variables, instead of
+// 	using syntax like `${variable_name}`
+console.log('Zhang, Steven\nYeung, Kelvin'.replace(/(\w+), (\w+)/g, '$2 $1'));
+console.log('Zhang, Steven\nYeung, Kelvin'.replace(/(\w+), (\w+)/g, '-$&-'));
 
 /*
-	use a function as the replacement.
+	Replace with a function
 
-	The function will be called with the whole match ($&) and the matched groups
-	($1, $2, ... if any) as arguments, and its return value will be inserted 
-	into the new string.
+	Instead of expression, we can pass a function and the function will be 
+	called with the whole match ($&) and the matched groups ($1, $2, ... 
+	if any) as arguments, and its return value will be inserted  into the 
+	new string.
 */
 
 // The arrow function only takes one argument, which will be the whole match,
@@ -268,7 +279,8 @@ function minusOne(match, quantity, item){
 										// to implicit conversion.
 										//
 										// In Javascript, implicit conversion
-										// is everywhere, like
+										// is everywhere, sometimes can give
+										// a surprise, like
 										//
 										// '2' == 2	// true
 	if (amount == 0){
@@ -314,12 +326,84 @@ console.log(stripComments('1 /* abc\ndef */ + 2'));		// no match, no change.
 // (1) use [^]* to replace .*, [^] means any character that is not in a empty set,
 //	so it matches any character, including \n
 // (2) use a non-greedy search for /* */
-function stripComments(code){
+function stripCommentsNew(code){
 	// get rid of anything that starts with '//' or in between /* and */
 	return code.replace(/\/\/.*|\/\*[^]*?\*\//g, '')
 }
 
-console.log(stripComments('a + b // some comments'));	// a + b
-console.log(stripComments('1 + /* 2 */ 3'));			// 1 +  3
-console.log(stripComments('1 /* a */ + /* b */ 2'));	// 1  +  2
-console.log(stripComments('1 /* abc\ndef */ + 2'));		// 1  + 2
+console.log(stripCommentsNew('a + b // some comments'));	// a + b
+console.log(stripCommentsNew('1 + /* 2 */ 3'));			// 1 +  3
+console.log(stripCommentsNew('1 /* a */ + /* b */ 2'));	// 1  +  2
+console.log(stripCommentsNew('1 /* abc\ndef */ + 2'));		// 1  + 2
+
+
+
+/*
+	Dynamically creating regular expression.
+
+	Sometimes the pattern to search is not unknown until runtime, for
+	example we want to search for a person's name which is contained
+	in a variable. Now we want to replace the name with the pattern
+	_name_ to make it standout.
+*/
+let name = 'harry';
+let text = 'Harry is a good guy';
+
+
+// construct a regexp object from a string, note we need to escape the \
+// character like in a normal string.
+let regexp = new RegExp('(\\b' + name + '\\b)', 'gi');
+console.log(text.replace(regexp, '_$1_'));			// _Harry_ is a good guy.
+console.log(text.replace(/(\bharry\b)/gi, '_$1_'));	// same as above
+
+
+// What if the pattern contains special character?
+let name2 = 'de/+(h)[^123]{9}rd';
+let text2 = `This ${name2} guy is super annoying`;
+let regexp2 = new RegExp('\\b' + name2 + '\\b');
+console.log(text2.replace(regexp2, '_$&_'));	// doesn't work, not matched
+
+
+// we need to escape special characters when constructing regexp object
+// 
+// Note: / () {} * + . ? | $ lost special meaning within [], so they don't
+// 	have to be escaped.
+//
+//	^, when not put at the first place within [], lost its special meaning, 
+// 	so don't need to be escaped.
+//
+//	\ [ ] must be escaped within []
+//
+//	create the string with special characters escaped
+let escaped = name2.replace(/[\\\[\]{}()^*+.?/|$]/g, '\\$&')
+console.log(escaped)
+let regexpNew = new RegExp('\\b' + escaped + '\\b', 'gi');
+console.log(text2.replace(regexpNew, '_$&_'));
+
+
+
+/*
+	More on the /g flag.
+
+	The use of /g can be tricky, 
+
+	1. When /g is used, multiple calls of exec() on the same RegExp object
+		returns successive matches on the same string.
+	2. When /g is used, String.match(regexp) returns an array of all matched  
+		parts, otherwise it behaves the same as RegExp.exec(string) method,
+		returns an array of [the_first_part_matched, index: ?, input: ?]
+*/
+console.log(/\d+/.exec('123 abc 456'));	// ['123', index: 0, input: '123 abc 456']
+console.log('123 abc 456'.match(/\d+/));	// same as above
+console.log('123 abc 456'.match(/\d+/g));	// ['123', '456']
+console.log('hello alpha'.match(/\d+/g));	// null (nothing matches)
+
+
+// Use /g and exec() to loop over matches
+let input = 'A string with 3 numbers in it... 412 and 88.';
+let pattern = /(\d+)/g;
+let m;
+while (m = pattern.exec(input)){
+	// console.log(m)
+	console.log(`number is ${m[1]}, at ${m.index}`)
+}
