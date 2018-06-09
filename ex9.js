@@ -1,6 +1,7 @@
 ﻿/*
 	Chapter 9 Regular expressions exercises
 */
+"use strict"
 
 // cat and car
 let r1 = /ca[rt]/;
@@ -44,4 +45,19 @@ function verify(regexp, yes, no){
 			console.log('unexpected match of ' + str);
 		}
 	}
+}
+
+
+
+/*
+	Quoting style.
+
+	In essence, it's a "replace all except this pattern" kind of problem.
+*/
+let text = "'I'm the cook,' he said, 'it's my job.'";
+// text.replace(/(\b|\W)(')|(')(\b|\W)/, toDoubleQuote);
+let t2 = text.replace(/^'|'$|\W'|'\W/g, toDoubleQuote);
+console.log(t2);
+function toDoubleQuote(whole){
+	return whole.replace("'", '"');
 }
