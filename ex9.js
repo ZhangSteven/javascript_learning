@@ -52,12 +52,53 @@ function verify(regexp, yes, no){
 /*
 	Quoting style.
 
-	In essence, it's a "replace all except this pattern" kind of problem.
+	A single quote needs to be replaced by a double quote, unless it is within
+	a word, like aren't.
 */
 let text = "'I'm the cook,' he said, 'it's my job.'";
 // text.replace(/(\b|\W)(')|(')(\b|\W)/, toDoubleQuote);
 let t2 = text.replace(/^'|'$|\W'|'\W/g, toDoubleQuote);
 console.log(t2);
-function toDoubleQuote(whole){
-	return whole.replace("'", '"');
+function toDoubleQuote(string){
+	return string.replace("'", '"');
+}
+
+/*
+	The solution
+
+	Note: $1 will be undefined if the pattern on the right matches,
+		  $2 will be undefined if the pattern on the left matches
+*/
+let tSolution = text.replace(/(^|\W)'|'($|\W)/g, '$1"$2');
+console.log(tSolution);
+
+
+let tSolution2 = text.replace(/(^|\W)'|'($|\W)/g, toDoubleQuote2);
+function toDoubleQuote2(whole, part1, part2){
+	console.log(part1, part2);
+	console.log();
+}
+
+
+/*
+	Numbers.
+*/
+// let number = /^[+-]?[0-9]+\.?[0-9]*(e-|e\+?)?[0-9]*$|^\.[0-9]+(e\+?|e-)?[0-9]*$/i;
+
+// the answer
+let number = /^[+-]?(\d+(\.\d*)?|\.\d+)((e|e\+|e-)\d+)?$/i;
+
+// positive tests
+for (let str of ['1', '-1', '+5', '1.55', '.5', '5.', '1.3e2', '1E-4',
+				'1e+12', '-.25']){
+	if (!number.test(str)){
+		console.log(`failed to match '${str}'`);
+	}
+}
+
+// negative tests
+for (let str of ['1a', '+-1', '1.2.3', '1+1', '1e4.5', '.5.', '1f5', '.']){
+	if (number.test(str)){
+		console.log(`shouldn't match '${str}'`);
+	}
 }

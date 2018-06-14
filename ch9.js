@@ -490,7 +490,7 @@ outputdir=/home/marijn/enemies/davaeorn
 
 	So we need to use /u, /p{...} to work with international characters.
 */
-console.log(/🍎{3}/.test("🍎🍎🍎"));	// false
+console.log(/🍎{3}/.test("🍎🍎🍎"));		// false
 console.log(/<.>/.test("<🌹>"));			// false
 console.log(/<.>/u.test("<🌹>"));		// true
 console.log(/<.>/u.test('<国>'));		// true
