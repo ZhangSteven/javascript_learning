@@ -124,5 +124,14 @@ console.log(plus10(2, 3));
 
 /*
 	ECMAScript modules: keyword import, export
-*/
 
+	Unfortunately, the current version NodeJS v8.11.2 does not support
+	import/export yet.
+
+	see this link:
+	https://stackoverflow.com/questions/37132031/nodejs-plans-to-support-import-export-es6-es2015-modules
+*/
+// import {days, months} from "date-names";
+// import {changingX as x} from "./ch10_module2";
+// import plus20, minus10 from "./ch10_module2";
+// console.log('imported changingX = ', x);

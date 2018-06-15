@@ -1,7 +1,7 @@
-<script>
-/*
+﻿/*
 	Project: A Robot
 */
+"use strict"
 
 let x = Object.create(null);	// an object with no properties
 								// no prototype
@@ -60,18 +60,21 @@ console.log(roadGraph);
 */
 class VillageState {
 	constructor(place, parcels) {
-		this.place = place;
-		this.parcels = parcels;
+		this.place = place;		// the robot's location
+		this.parcels = parcels;	// the parcels' state. Each parcel' state
+								// is a pair (current location, destination)
 	}
 
 	/*
-		Update the state of all parcels {place, address}, as below:
+		Update the state of all parcels {place, address} when the robot
+		moves, as below:
 
 		1. For those not at the current location (p.place != this.place), 
-			they are not picked up yet, so no change.
-		2. For those at the current location, they are picked up and
-			moved to next stop (p.place = destination).
-		3. Remove those delivered (p.place = p.address).
+			they are not with the robot (not picked up yet), no change.
+		2. For those at the current location, they are with the robot so
+			they are moved to next stop (p.place = destination).
+		3. For those who reach their destination after the move
+			(p.place = p.address), they are removed from the list of parcels.
 
 		Finally return a new VillageState object reflecting the new
 		state, the robot's location and the parcels' state.
@@ -118,14 +121,14 @@ console.log(first.place);
 function runRobot(state, robot, memory){
 	for (let turn=0;;turn++){
 		if (state.parcels.length == 0){
-			console.log(`Done in ${turn} turns`);
+			// console.log(`Done in ${turn} turns`);
 			return turn;
 		}
 
 		let direction;
 		[direction, memory] = robot(state, memory);
 		state = state.move(direction);
-		console.log(`Moved to ${direction}`);
+		// console.log(`Moved to ${direction}`);
 	}
 }
 
@@ -187,7 +190,7 @@ console.log('Random robot finishes\n\n');
 */
 
 // the route is a list of next stops, starting from Post Office.
-const mailRoute = [
+routeRobot.mailRoute = [
 	"Alice's House", "Cabin", "Alice's House", "Bob's House",
     "Town Hall", "Daria's House", "Ernie's House",
     "Grete's House", "Shop", "Grete's House", "Farm",
@@ -198,7 +201,8 @@ const mailRoute = [
 // memory is list of remaining next stops to go.
 function routeRobot(state, memory){
 	if (memory.length == 0){
-		memory = mailRoute;	// if all stops reached, start all over again.
+		memory = routeRobot.mailRoute;	// if all stops reached, 
+										// start all over again.
 	}
 
 	return [memory[0], memory.slice(1)];
@@ -275,28 +279,33 @@ console.log('End of findRouteRecursive test\n\n');
 	reaches G, therefore the route is B-C-F-G. The shorter branch F-G is not
 	tried at all.
 
-	In the non-resursive version, we pile all possible paths in parallel, in
-	the case of searching for paths from A to G, it works like below:
+	In the non-resursive version, from the starting point ('A'), we list what
+	can be reached within one step ('A', 'B', 'F') and the path to reach those
+	nodes from 'A' ([], ['B'], ['F']), then we start from ('A', 'B', 'F') and
+	list what can be reached with one more step ('A', 'B', 'F', 'D', 'C') and
+	the path to reach them. We keep doing this until the list of nodes reached
+	include the destination. This way we'll find the shortest path to the 
+	destination. Say our starting point is 'A' and destination is 'G', here is 
+	how it goes:
 
-	i	node reached	path to reach the node
-	0	A 				[]
-	0	A, B, F 		[], ['B'], ['F']
-	1	A, B, F, D, C 	[], ['B'], ['F'], ['B', 'D'], ['B', 'C']
-	2	A, B, F, D, C,G	[], ['B'], ['F'], ['B', 'D'], ['B', 'C'], ['F', 'G']
+	nodes reached		path to reach those nodes
+	A 					[]
+	A, B, F 			[], ['B'], ['F']
+	A, B, F, D, C 		[], ['B'], ['F'], ['B', 'D'], ['B', 'C']
+	A, B, F, D, C, G	[], ['B'], ['F'], ['B', 'D'], ['B', 'C'], ['F', 'G']
 
 	Note that when we add a node and the path to reach the node to the work,
 	we make sure the node hasn't been reached before, so that we only keep
 	one path to a node in the work.
 */
 function findRoute(graph, from, to){
-	let work = [{at: from, route: []}];
+	let work = [{reached: from, route: []}];
 	for (let i=0; i<work.length; i++){
-		let {at, route} = work[i];
-		for (let place of graph[at]){
+		let {reached, route} = work[i];
+		for (let place of graph[reached]){
 			if (place == to) return route.concat(place);
-			if (!work.some(w => w.at == place)){	// cannot revisit those
-													// places already visited
-				work.push({at: place, route: route.concat(place)});
+			if (!work.some(w => w.reached == place)){	
+				work.push({reached: place, route: route.concat(place)});
 				// console.log(`i = ${i}, ${work[work.length-1].route}`);
 			}
 		}
@@ -316,16 +325,20 @@ console.log('End of findRoute test\n\n');
 
 	if yes (moves != []), just go on. 
 
-	If not, then check if there is a parcel already picked up (parcel.place == state.place),
+	If not, then check if there is a parcel already picked up 
+	(parcel.place == state.place),
 
-		if yes, find a path from the current location to the pacel's destination, then create the move.
+		if yes, find a path from the current location to the pacel's 
+		destination, then create the move.
 
-		if not, then pick the first pacel in the pacels, find a path to the pacel's pick up address, then create the move.
+		if not, then pick the first pacel in the pacels, find a path to 
+		the pacel's pick up address, then create the move.
 */
 
 function pathFindingRobot({place, parcels}, moves){
 	if (moves.length > 0) return [moves[0], moves.slice(1)];
 	let i = parcels.findIndex(p => place == p.place);
+	let newMoves;
 	if (i > -1){
 		newMoves = findRoute(roadGraph, place, parcels[i].address);
 	} else {
@@ -342,9 +355,12 @@ console.log('pathFindingRobot finishes\n\n');
 /*
 	The path finding robot from the book.
 
-	It's simpler than the above, in that it doesn't care whether there is a parcel already picked up. It simply choose the first parcel, if it is already picked up, then move to destination, if not then go to pick it up.
+	It's simpler than the above, in that it doesn't care whether there is a 
+	parcel already picked up. It simply choose the first parcel, if it is 
+	already picked up, then move to destination, if not then go to pick it up.
 
-	From the compareRobots() function below, this function takes slightly fewer number of steps to deliver all parcels in average.
+	From the compareRobots() function below, this function takes slightly 
+	fewer number of steps to deliver all parcels in average.
 */
 function goalOrientedRobot({place, parcels}, route){
 	if (route.length > 0) return [route[0], route.slice(1)];
@@ -364,7 +380,8 @@ console.log('goalOrientedRobot finishes\n\n');
 /*
 	Exercise 1. Measuring a robot.
 
-	Generate 100 tasks and count the average number of turns each robot requires.
+	Generate 100 tasks and count the average number of turns each robot 
+	requires.
 */
 function compareRobots(robot1, memory1, robot2, memory2){
 	let turns1 = 0, turns2 = 0;
@@ -376,7 +393,7 @@ function compareRobots(robot1, memory1, robot2, memory2){
 	return [turns1/100, turns2/100];
 }
 
-[averageTurns1, averageTurns2] = compareRobots(pathFindingRobot, [], goalOrientedRobot, []);
+let [averageTurns1, averageTurns2] = compareRobots(pathFindingRobot, [], goalOrientedRobot, []);
 console.log(`Average turns: pathFindingRobot ${averageTurns1}, goalOrientedRobot ${averageTurns2}`);
 
 [averageTurns1, averageTurns2] = compareRobots(routeRobot, [], goalOrientedRobot, []);
@@ -387,11 +404,14 @@ console.log(`Average turns: routeRobot ${averageTurns1}, goalOrientedRobot ${ave
 /*
 	Exercise 2. More efficient path finding robot.
 
-	Here we try to improve the goalOrientedRobot. Instead of grabbing the first parcel in the parcels array, we check whether there are parcels already picked up, 
+	Here we try to improve the goalOrientedRobot. Instead of grabbing the first 
+	parcel in the parcels array, we check whether there are parcels already 
+	picked up, 
 
 	if yes, then we go ahead delivering them.
 
-	if no, then we measure the distance between the robot and each parcel, then grab the nearest parcel (in terms of number of turns).
+	if no, then we measure the distance between the robot and each parcel, then 
+	grab the nearest parcel (in terms of number of turns).
 */
 function betterGoalOrientedRobot({place, parcels}, route){
 	if (route.length > 0) return [route[0], route.slice(1)];
@@ -418,7 +438,10 @@ console.log(`Average turns: betterGoalOrientedRobot ${averageTurns1}, goalOrient
 /*
 	Exercise 2. Continued.
 
-	The above betterGoalOrientedRobot() is actually not better than goalOrientedRobot. Now we change the algorithm, we simply measure the distance for each parcel (whether to pick them up or deliver them), then take the shortest one.
+	The above betterGoalOrientedRobot() is actually not better than 
+	goalOrientedRobot. Now we change the algorithm, we simply measure the 
+	distance for each parcel (whether to pick them up or deliver them), then 
+	take the shortest one.
 */
 function evenBetterGoalOrientedRobot({place, parcels}, route){
 	if (route.length > 0) return [route[0], route.slice(1)];
@@ -444,7 +467,10 @@ console.log(`Average turns: evenBetterGoalOrientedRobot ${averageTurns1}, goalOr
 /*
 	Exercise 2. Continued.
 
-	The evenBetterGoalOrientedRobot() performs better than the goalOrientedRobot(). We can further improve it by preferring the pick up task over the delivery. That is, when multiple shortest path exist, we prefer the route to pick up a new parcel.
+	The evenBetterGoalOrientedRobot() performs better than the 
+	goalOrientedRobot(). We can further improve it by preferring the pick up 
+	task over the delivery. That is, when multiple shortest path exist, we 
+	prefer the route to pick up a new parcel.
 */
 function evenEvenBetterGoalOrientedRobot({place, parcels}, route){
 	if (route.length > 0) return [route[0], route.slice(1)];
@@ -478,7 +504,9 @@ console.log(`Average turns: evenBetterGoalOrientedRobot ${averageTurns1}, evenEv
 /*
 	Exercise 2. Continued.
 
-	The lazyRobot() is the one from the solution. But it uses Array.map() function to replace the for loop above and uses a score() function to replace the if/else if/else structure, is more clear.
+	The lazyRobot() is the one from the solution. But it uses Array.map() 
+	function to replace the for loop above and uses a score() function to 
+	replace the if/else if/else structure, is more clear.
 */
 function lazyRobot({place, parcels}, route){
 	if (route.length > 0) return [route[0], route.slice(1)];
@@ -497,5 +525,3 @@ function lazyRobot({place, parcels}, route){
 
 [averageTurns1, averageTurns2] = compareRobots(lazyRobot, [], evenEvenBetterGoalOrientedRobot, []);
 console.log(`Average turns: lazyRobot ${averageTurns1}, evenEvenBetterGoalOrientedRobot ${averageTurns2}`);
-
-</script>
