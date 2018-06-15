@@ -101,7 +101,7 @@ function require2(name){
 
 		This updates mod.exports, also require2.cache[name].exports
 
-		require2 is also passed as 'require' becuase if inside code
+		require2 is also passed as 'require' because if inside code
 		there are 'require' statements, then it will call the function.
 		*/
 		wrapper(require2, mod.exports, mod);
