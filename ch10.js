@@ -67,9 +67,6 @@ console.log(plusXY(4, 5));	// 9
 	the object bound to the name 'exports'.
 
 	see 'ch10_module.js' for more information.
-
-	We can see when require is used, it actually executes the code in the
-	imported module.
 */
 const {formatDate} = require('./ch10_module');	// load ch10_module.js from
 												// local directory
@@ -81,7 +78,43 @@ console.log(formatDate(new Date('2018-8-17'), 'dddd the Do'));// Friday the 17th
 
 
 /*
-	A simplified implementation of 'require'.
+	A simplified implementation of 'require' to show how it works.
+
+	For more details on what happens during module loading, see the below link:
+	https://medium.freecodecamp.org/requiring-modules-in-node-js-everything-you-need-to-know-e7fbd119be8
+
+	The export and require process is as follows:
+
+	During loading the modules (each .js file is a module), JavaScript runtime
+	wraps all the code in a module into a function and do the following:
+
+	(function (require, exports, module, ...) {
+		
+		... code in the module ...
+
+		return module.exports;
+	})();
+
+	// 'exports' is a reference to module.exports
+
+	This way, bindings (variable, function, class etc.) from different modules
+	are wrapped in isolated scopes so they won't interfere with each other. 
+
+	Since 'module' and 'exports' are available to the code, to export interface, 
+	you can do:
+
+	exports.name = function(){...};	// in the code to export interface
+	const {name} = require(module_name);	// in the code doing require()
+
+	Or,
+
+	module.exports = function(){...};	// in the code to export interface
+	const name = require(module_name);	// in the code doing require()
+
+	But, you CANNOT do,
+
+	exports = function(){...};	// this overwrites binding exports
+	const name = require(module_name); 	// won't work
 */
 require2.cache = Object.create(null);
 function require2(name){
@@ -121,6 +154,9 @@ const {plus10} = require2('some file name');
 console.log(plus10(2, 3));
 
 
+
+const ftest = require('./ch10_module_test');
+console.log(ftest(88));
 
 /*
 	ECMAScript modules: keyword import, export

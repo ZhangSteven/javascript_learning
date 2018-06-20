@@ -52,6 +52,9 @@ function calculate(n){
 
 // The code intends to create an asynchronous function which returns a value
 // after 2 seconds. However it actually returns with the value 'undefined'.
+// 
+// For the proper use of waiting for an asynchronous call to return and do
+// something after that, check 'ch11A.js', asynchronous function.
 async function getResult2s(){
 	console.log('calling getResult2s()');
 	let value;
@@ -121,6 +124,9 @@ function resultHandler(result){
 // 
 let fifteen = Promise.resolve(15);
 fifteen.then(value => console.log('The value is', value));
+
+let another = new Promise(resolve => setTimeout(resolve, 200));
+another.then(value => console.log('finished'));
 
 let myPromise = new Promise((resolve, reject) => {
 	// use a timeout to simulate asynchronous work

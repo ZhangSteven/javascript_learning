@@ -38,4 +38,3 @@ exports.formatDate = function(date, format){
 		if (tag == 'dddd') return days[date.getDay()];
 	});
 };	// ; is needed at the end of the statement
-
