@@ -36,23 +36,33 @@ bigOak.send('Cow Pasture', 'note', 'Let\'s caw loudly at 7PM', (error, response)
 
 	A handler will be called like this:
 
-	hander(targetNode, content, sourceNodeName, callback);
+	handler(targetNode, content, sourceNodeName, done);
 
-	So, a typical implementation of a handler looks like:
-	try {
-		... do some work to generate response ...
-		callback(null, response);
+	where 'done' is a function to be called inside the handler, when the
+	response is ready, to deliver the result, its implementation is as:
 
-	} catch (exception) {
-		callback(exception);
-	}
+	done (error, response) => {
+		setTimeout(() => callback(error, ser(response)), 10);
+	});
 
+	where callback is another function which does something like:
+
+	if (error) reject(error);
+	else resolve(response);
+
+	Therefore, either the handler does not return any value, i.e., just
+	use side effects (like console.log); Or, if it needs to return a
+	value, it must wrap that value as promise and use something like:
+
+	Promise.resolve(value).then().catch();
+
+	For details, see below 'requestType()' function on how to do this.
 */
 const {defineRequestType} = require('./crow-tech');
 
 defineRequestType('note', (nest, content, source, done) => {
 	console.log(`${nest.name} received from ${source}, note: ${content}`);
-	done();	// deliver an 'undefined' response
+	done();	// same as put (undefined, undefined) as (error, response)
 });
 
 
@@ -129,7 +139,7 @@ request(bigOak, 'Cow Pasture', 'note', 'Let\'s caw loudly at 7PM');
 	function as well.
 
 	Now we want to wrap the handler function in a new function which will
-	take care of the try/catch clause and the invoking of callback, then
+	take care of the try/catch clause and the invoking of callback, so
 	the handler function can focus on generating results. Also, in case 
 	the handler function will do something asynchronous, we wrap its return 
 	value in a Promise. 
@@ -154,29 +164,27 @@ function requestType(type, handler){
 
 	ping, echo
 */
-requestType('ping', (nest, content, source) => {
-	console.log(`${nest.name} received ping from ${source}`);
-});
-request(bigOak, 'Cow Pasture', 'ping');
+requestType('ping', () => 'pong');
+request(bigOak, 'Cow Pasture', 'ping')
+	.then(response => console.log('bigOak ping: ' + response),
+		reason => console.log('ping failed: ' + reason));
 
 requestType('echo', (nest, content, source) => {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			let v = Math.floor(Math.random() * 10);
-			if (v > 4) resolve(content + ' ' + v);
-			else reject('value too small ' + v);
-
+			if (Math.random() > 0.5) resolve(`echo '${content}' from '${nest.name}'`);
+			else reject(`echo failed from '${nest.name}'`);
 		}, 10 * Math.floor(Math.random() * 10));
 	});
 });
 request(bigOak, 'Butcher Shop', 'echo', 'hello')
 	.then(response => console.log(response),
-			reason => console.log('echo failed: ' + reason));
+			reason => console.log('error: ' + reason));
 
 // doomed to fail 
 request(bigOak, '<invalid destination>', 'echo', 'hello')
 	.then(response => console.log(response),
-			reason => console.log('echo failed: ' + reason));
+			reason => console.log('error: ' + reason));
 
 
 
@@ -254,5 +262,5 @@ function sendGossip(nest, message, exceptFor = null){
 }
 
 // start broadcasting
-sendGossip(bigOak, 'Kids with airgun in the park');
+// sendGossip(bigOak, 'Kids with airgun in the park');
 
