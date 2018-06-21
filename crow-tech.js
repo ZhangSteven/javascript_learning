@@ -1,14 +1,13 @@
 /*
 	For chapter 11, Asynchronous Function, the example of crow tech.
-*/
-"use strict"
 
-
-
-/*
 	Wrap the whole body inside a function and call it.
 */
 (function() {
+
+
+"use strict"
+
 
 // direct links between crow nests
 const connections = [
@@ -27,7 +26,7 @@ function storageFor(name){
 	let storage = Object.create(null);
 	storage['food caches'] = ['cache in the oak', 'cache in the meadow', 
 								'cache under the hedge'];
-	storage['cash in oak'] = 'A hollow above the third big branch from the bottom. Several pieces of break and a pile of acorns';
+	storage['cache in the oak'] = 'A hollow above the third big branch from the bottom. Several pieces of break and a pile of acorns';
 	storage['cache in the meadow'] = 'Buried below the patch of nettles (south side). A dead snake';
 	storage['cache under the hedge'] = 'Middle of the hedge at Gilles\' garden. Marked with a forked twig. Two bottles of beer';
 	storage['enemies'] = ['Farmer Jaque\'s dog', 'The butcher', 'The one-legged jackdaw', 'The boy with the airgun'];
@@ -66,8 +65,8 @@ class Network {
 				if (reachable[from] == undefined) reachable[from] = [];
 				reachable[from].push(to);
 			*/
-			(reachable[from] || reachable[from] = []).push(to);
-			(reachable[to] || reachable[to] = []).push(from);
+			(reachable[from] || (reachable[from] = [])).push(to);
+			(reachable[to] || (reachable[to] = [])).push(from);
 		}
 
 		this.nodes = Object.create(null);
@@ -115,7 +114,7 @@ class Node {
 		
 		let handler = this[$network].types[type];
 		if (!handler){
-			return callback(new Error('Unknown request type ' + type));
+			return callback(new Error(`Unknown request type '${type}'`));
 		}
 
 		// 3% chance of not calling the handler at all, to simulate a packet
@@ -139,7 +138,8 @@ class Node {
 
 		/*
 			same as:
-			if (value != undefined) callback(JSON.parse(value))
+			if (value) callback(JSON.parse(value));
+			else callback(value);
 		*/
 		setTimeout(() => callback(value && JSON.parse(value)), 20);
 	}

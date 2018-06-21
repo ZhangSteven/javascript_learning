@@ -161,3 +161,36 @@ new Promise((_, reject) => reject(new Error('Failed')))
 		return 'nothing';	// a new promise returned
 	})
 	.then(value => console.log('successful handler 2', value));
+
+
+
+
+/*
+	Asynchronous function.
+
+	Wait for a promise to resolve, then return another promise based on 
+	the outcome. 
+	
+	If the waited promise is rejected, then returns a rejected promise
+	whose reject reason being the same as the waited promise.
+
+	Note: await keyword can only be used in asynchronous functions.
+*/
+function getResultRandom(n){
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			if (Math.random() > 0.2) resolve(n + ' ok');
+			else reject(n + ' rejected');
+		}, 200 + Math.floor(800*Math.random()));
+	});
+}
+
+async function getResultFromRandom(n){
+	let result = await getResultRandom(n);
+	return result + ' 000';
+}
+
+getResultFromRandom('test')
+	.then(value => console.log(value), reason => console.log(reason));
+
+
