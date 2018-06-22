@@ -239,6 +239,13 @@ availableNeighbors(bigOak).then(result => console.log('Big Oak neighbors: ' + re
 /*
 	Network flooding.
 	
+	Broadcast a message to the whole network.
+
+	From one node send a message to all its neighbors, then the neighbors
+	send to all their neighbors. To prevent them from resending the same
+	messages for ever, a node only resend new messages but ignore messages
+	it has received before. To boost efficiency, a node will not resend the
+	message to its source when broadcasting.
 */
 const {everywhere} = require('./crow-tech');
 
@@ -264,3 +271,130 @@ function sendGossip(nest, message, exceptFor = null){
 // start broadcasting
 // sendGossip(bigOak, 'Kids with airgun in the park');
 
+
+
+/*
+	Broadcast connections information to the whole network, so that every
+	node has a complete network graph.
+
+	To do this,
+
+	1. Each node creates a 'connections' object (Map) to hold neighbors
+		information of every node in the network.
+	2. Each node broadcasts its own neighbors to the whole network.
+	3. A node, upon receiving a message from another node, compares that
+		node's neighbors to records in the connections object,
+			> if they are the same, ignore the message
+			> if not, update the record send the message to its neighboring 
+				nodes.
+
+	This way, when a new node is added to the network or an existing node
+	is destroyed, connection status in the network can be updated by
+	broadcasting.
+*/
+requestType('connection', (nest, {name, neighbors}, source) => {
+	if (compareStringArray(nest.state.connections.get(name), neighbors)){
+		return;
+	}
+	// console.log(name, neighbors);
+	nest.state.connections.set(name, neighbors);
+	sendConnection(nest, {name, neighbors}, source);
+});
+
+everywhere(nest => {
+	nest.state.connections = new Map;
+	nest.state.connections.set(nest.name, nest.neighbors);
+});
+
+everywhere(nest => {
+	sendConnection(nest, {name: nest.name, neighbors: nest.neighbors});
+});
+
+// test: wait 5 seconds, bigOak should have the whole network graph
+setTimeout(() => console.log(bigOak.state.connections), 5000);
+
+
+
+function sendConnection(nest, message, exceptFor=null){
+	for (let neighbor of nest.neighbors){
+		if (neighbor == exceptFor) continue;
+		request(nest, neighbor, 'connection', message)
+			.then(() => 0)
+			.catch(reason => console.log(`failed: ${nest.name} -> ${neighbor}: ${reason}`));
+	}
+}
+
+function compareStringArray(list1, list2){
+	/*
+		Compare two array of Strings, each element in the array is
+		unique.
+	*/
+	if (!list1 || !list2) return list1 == list2;
+	if (list1.length != list2.length) return false;
+	for (let el of list1){
+		if (!(list2.includes(el))) return false;
+	}
+
+	return true;
+}
+
+
+
+/*
+	Find a route from source node (from) to the destination node (to).
+
+	The function returns the next node the message should be sent to.
+	When the message arrives at the next node, the next node will compute
+	the route again and send the message to the next hop.
+
+	findFullPath() is the same as the findPath() in chapter 7, which returns
+	the full path from source to destination. 
+
+	findRoute() is a slight modification which just returns the next hop.
+*/
+function findRoute(from, to, connections){
+	let work = [{at: from, via: null}];
+	for (let i=0; i<work.length; i++){
+		let {at, via} = work[i];
+		for (let next of connections.get(at)){
+			if (next == to) return via;
+			if (!work.some(w => w.at == next)){
+				work.push({at: next, via: via || next});
+			}
+		}
+	}
+	return null;
+}
+
+function findFullPath(from, to, connections){
+	let work = [{at: from, via: []}];
+	for (let i=0; i<work.length; i++){
+		let {at, via} = work[i];
+		for (let next of connections.get(at)){
+			if (next == to) return via.concat(next);
+			if (!work.some(w => w.at == next)){
+				work.push({at: next, via: via.concat(next)});
+			}
+		}
+	}
+	return [];	// nothing is found
+}
+
+let connections;
+setTimeout(() => {
+	connections = bigOak.state.connections;
+	console.log(findFullPath('Big Oak', 'Church Tower', connections));
+}, 5000);
+
+setTimeout(() => {
+	console.log(findRoute('Big Oak', 'Church Tower', connections));	
+}, 5000);
+
+
+
+/*
+	Send long distance message through many hops.
+*/
+requestType('route', (nest, message, source) => {
+	
+});
