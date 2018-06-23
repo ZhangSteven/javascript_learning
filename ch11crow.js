@@ -1,4 +1,4 @@
-/*
+﻿/*
 	Chapter 11. Asynchronous Functions.
 
 	Use the functions imported from ./crow-tech.js
@@ -293,7 +293,7 @@ function sendGossip(nest, message, exceptFor = null){
 	broadcasting.
 */
 requestType('connection', (nest, {name, neighbors}, source) => {
-	if (compareStringArray(nest.state.connections.get(name), neighbors)){
+	if (compareArray(nest.state.connections.get(name), neighbors)){
 		return;
 	}
 	// console.log(name, neighbors);
@@ -324,18 +324,41 @@ function sendConnection(nest, message, exceptFor=null){
 	}
 }
 
-function compareStringArray(list1, list2){
+function compareArray(list1, list2){
 	/*
-		Compare two array of Strings, each element in the array is
-		unique.
+		Compare two arrays regardless of the order of their elements, if they
+		contain the same set of elements, then they are equal. But the elements
+		must be either a string or an integer because we use == operator to 
+		compare. So,
+
+		compareArray(null, null);	// true
+		compareArray(null, []);		// false
+		compareArray([], []);		// true
+		compareArray(['a', 'b', 'c'], ['b', 'a', 'c']);	// true
+		compareArray(['a', 'b', 'b'], ['b', 'a', 'b']);	// true
+		compareArray(['a', 'b', 'b'], ['a', 'a', 'b']);	// false
+
+		Can we convert an array to Map, then compare the two Map?
 	*/
 	if (!list1 || !list2) return list1 == list2;
 	if (list1.length != list2.length) return false;
-	for (let el of list1){
-		if (!(list2.includes(el))) return false;
+	return compareDictionary(arrayToDictionary(list1), arrayToDictionary(list2));
+
+	function arrayToDictionary(list){
+		let d = Object.create(null);
+		for (let el of list){
+			if (!d[el]) d[el] = 1;
+			else d[el]++;
+		}
+		return d;
 	}
 
-	return true;
+	function compareDictionary(d1, d2){
+		for (let key in d1){
+			if (d1[key] != d2[key]) return false;
+		}
+		return true;
+	}
 }
 
 
@@ -380,6 +403,7 @@ function findFullPath(from, to, connections){
 	return [];	// nothing is found
 }
 
+// It takes some time for the connections to be built up 
 let connections;
 setTimeout(() => {
 	connections = bigOak.state.connections;
@@ -394,7 +418,125 @@ setTimeout(() => {
 
 /*
 	Send long distance message through many hops.
+
+	Previously, the request() function can only send a type of message to
+	a nest's direct neighbor. However, if we want deliver a 'note' message
+	to a remote node which is not a direct neighbor, what shall we do?
+
+	We can define a new type of request handler, called 'route' which works
+	as follows:
+
+	If the message is addressed to a direct neighbor, it is delivered as
+	usual. If not, it is packaged in an object and sent to a neighbor that
+	is closer to the target, using the 'route' request type, which will
+	cause that neighbor to repeat the same behavior.
 */
-requestType('route', (nest, message, source) => {
-	
+requestType('route', (nest, {target, type, content}) => {
+	return routeRequest(nest, target, type, content);
 });
+
+function routeRequest(nest, target, type, content){
+	if (nest.neighbors.includes(target)){
+		return request(nest, target, type, content);
+	}
+	let via = findRoute(nest.name, target, nest.state.connections);
+	if (!via) throw new Error('no valid path to ' + target);
+	return request(nest, via, 'route', {target, type, content});
+}
+
+// we need to wait 5100ms so that bigOak has the network graph
+// in its local state object.
+setTimeout(() => {
+	routeRequest(bigOak, 'Cow Pasture', 'echo', 'hello 2')
+		.then(response => console.log(response))
+		.catch(reason => console.log(reason));
+	routeRequest(bigOak, 'Church Tower', 'echo', 'hello 3')
+		.then(response => console.log(response))
+		.catch(reason => console.log(reason));
+}, 5100);
+
+
+
+/*
+	Find information from a nest's storage.
+
+	If the information is available in the local storage, then return it.
+	Otherwise consult random other nests in the network until it finds one
+	that has it.
+*/
+
+requestType('storage', (nest, name) => storage(nest, name));
+
+function findInStorage(nest, name){
+	return storage(nest, name).then(found => {
+		if (found) return found;
+		else return findInRemoteStorage(nest, name);
+	});
+}
+
+function network(nest){
+	return Array.from(nest.state.connections.keys());
+}
+
+function findInRemoteStorage(nest, name){
+	let sources = network(nest).filter(n => n != nest.name);
+
+	function next(){
+		if (sources.length == 0){
+			return Promise.reject(new Error('not found'));
+		} else {
+			let source = sources[Math.floor(Math.random() * sources.length)];
+			sources = sources.filter(s => s != source);
+			console.log('try ' + source);
+			return routeRequest(nest, source, 'storage', name)
+				.then(value => value != null ? value: next(),
+						() => next());
+		}
+	}
+
+	return next();
+}
+
+// setTimeout(() => findInStorage(bigOak, 'events on 2017-12-21')
+// 			.then(value => console.log(value))
+// 			.catch(reason => console.log('failed to find storage: ' + reason)), 
+// 			5200);
+
+// setTimeout(() => findInStorage(bigOak, '<non-existing event>')
+// 			.then(value => console.log(value))
+// 			.catch(reason => console.log('failed to find storage: ' + reason)), 
+// 			5200);
+
+
+
+/*
+	Asynchronous function.
+
+	In the findStorage() and findInRemoteStorage() function, we need to
+	wait for the previous storage() call to finish (resolve or reject) before
+	we decide whether to make the next storage() call. So this procedure is
+	actually synchronous. In this case, we can use the 'await' keyword to
+	complete the task.
+*/
+async function findInStorageA(nest, name){
+	let local = await storage(nest, name);
+	if (local != null) return local;
+	let sources = network(nest).filter(n => n != nest.name);
+	let source, result;
+	while (sources.length > 0){
+		source = sources[Math.floor(Math.random() * sources.length)];
+		sources = sources.filter(s => s != source);
+		console.log('trying ' + source);
+		try {
+			result = await routeRequest(nest, source, 'storage', name);
+			if (result != null) return result;
+		} catch (_) { /* ignore rejected promise and keep trying */ }
+	}
+
+	throw new Error('not found');
+}
+
+setTimeout(() => findInStorageA(bigOak, 'events on 2017-12-21')
+			.then(value => console.log(value))
+			.catch(reason => console.log('failed to find storage: ' + reason)), 
+			5300);

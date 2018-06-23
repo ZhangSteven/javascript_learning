@@ -171,26 +171,46 @@ new Promise((_, reject) => reject(new Error('Failed')))
 	Wait for a promise to resolve, then return another promise based on 
 	the outcome. 
 	
-	If the waited promise is rejected, then returns a rejected promise
+	If the awaited promise is rejected, then returns a rejected promise
 	whose reject reason being the same as the waited promise.
 
 	Note: await keyword can only be used in asynchronous functions.
 */
-function getResultRandom(n){
-	return new Promise((resolve, reject) => {
-		setTimeout(() => {
-			if (Math.random() > 0.2) resolve(n + ' ok');
-			else reject(n + ' rejected');
-		}, 200 + Math.floor(800*Math.random()));
-	});
-}
 
 async function getResultFromRandom(n){
 	let result = await getResultRandom(n);
 	return result + ' 000';
 }
 
-getResultFromRandom('test')
-	.then(value => console.log(value), reason => console.log(reason));
+/*
+	The only difference is that we use a try/catch to wrap the awaited
+	promise. If that promise is rejected, it will be caught as an exception.
 
+	Therefore, the below function returns a promise that is never rejected.
+*/
+async function getResultFromRandom2(n){
+	try {
+		let result = await getResultRandom(n);
+		return result + ' 001';
+	} catch (exception) {
+		return 'failed: ' + exception;
+	}
+}
+
+function getResultRandom(n){
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			if (Math.random() > 0.2) resolve(n + ' ok');
+			else {
+				reject(n + ' rejected');
+				// throw new Error('things go wrong'); what if there's an exception?
+			}
+		}, 200 + Math.floor(800*Math.random()));
+	});
+}
+
+getResultFromRandom('test')
+	.then(value => console.log(value), reason => console.log('error: ' + reason));
+
+getResultFromRandom2('test2').then(value => console.log(value));
 
