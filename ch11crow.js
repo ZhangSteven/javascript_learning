@@ -530,7 +530,11 @@ async function findInStorageA(nest, name){
 		try {
 			result = await routeRequest(nest, source, 'storage', name);
 			if (result != null) return result;
-		} catch (_) { /* ignore rejected promise and keep trying */ }
+		} catch (_) { 
+			/* we do try/catch so that rejected promise come here,
+				simeply ignore them.
+			*/ 
+		}
 	}
 
 	throw new Error('not found');

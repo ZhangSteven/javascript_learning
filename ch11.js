@@ -23,51 +23,20 @@
 	the events that trigger them. For example, the 'Tick200' is displayed
 	before the 'Tick800'.
 */
-setTimeout(() => console.log('Tick800'), 800);	// wait 800ms then print sth
+setTimeout(() => console.log('Tick 500'), 500);
+setTimeout(() => console.log('Tick 200'), 200);
 console.log('start calculate()');
-setTimeout(() => console.log('Tick200'), 200);	// wait 200ms then print sth
 calculate(10000000);
 console.log('calculate() finishes');
-// Tick200
-// Tick800
 
 function calculate(n){
 	/*
 		Time consuming calculation
 	*/
-	for (let i=0; i<300000000; i++){
+	for (let i=0; i<150000000; i++){
 		Math.sqrt((Math.random() + 1) * n);
 	}
 }
-
-
-
-/*
-	Asynchronous functions declaration: async keyword
-
-	The return value of asynchronous functions is not get a normal value, 
-	instead, it's a Promise object which resolves to a value when the value
-	becomes available.
-*/
-
-// The code intends to create an asynchronous function which returns a value
-// after 2 seconds. However it actually returns with the value 'undefined'.
-// 
-// For the proper use of waiting for an asynchronous call to return and do
-// something after that, check 'ch11A.js', asynchronous function.
-async function getResult2s(){
-	console.log('calling getResult2s()');
-	let value;
-	function assignValue(){
-		value = Math.random() > 0.5 ? true : false;
-	}
-	setTimeout(assignValue, 2000);
-	return value;
-}
-
-let result = getResult2s();	
-console.log(result);	// Promise {undefined}
-result.then(value => console.log('getResultAsync(): ', value));	// undefined
 
 
 
@@ -89,19 +58,19 @@ result.then(value => console.log('getResultAsync(): ', value));	// undefined
 */
 
 // The first approach: call back.
-getResultAsyncCallBack(resultHandler);
+doSomething(showResult);
 
-async function getResultAsyncCallBack(handler){
-	console.log('calling getResultAsyncCallBack()');
-	setTimeout(() => {
-		console.log('callback waited 300ms');
+function doSomething(handler){
+	setTimeout(() => { 
 		handler(Math.random() > 0.5 ? true : false);
 	}, 300);
 }
 
-function resultHandler(result){
-	console.log('result is', result);
+function showResult(result){
+	console.log('after do something, the result is', result);
 }
+
+
 
 // The second approach: Promise
 // 
@@ -161,56 +130,3 @@ new Promise((_, reject) => reject(new Error('Failed')))
 		return 'nothing';	// a new promise returned
 	})
 	.then(value => console.log('successful handler 2', value));
-
-
-
-
-/*
-	Asynchronous function.
-
-	Wait for a promise to resolve, then return another promise based on 
-	the outcome. 
-	
-	If the awaited promise is rejected, then returns a rejected promise
-	whose reject reason being the same as the waited promise.
-
-	Note: await keyword can only be used in asynchronous functions.
-*/
-
-async function getResultFromRandom(n){
-	let result = await getResultRandom(n);
-	return result + ' 000';
-}
-
-/*
-	The only difference is that we use a try/catch to wrap the awaited
-	promise. If that promise is rejected, it will be caught as an exception.
-
-	Therefore, the below function returns a promise that is never rejected.
-*/
-async function getResultFromRandom2(n){
-	try {
-		let result = await getResultRandom(n);
-		return result + ' 001';
-	} catch (exception) {
-		return 'failed: ' + exception;
-	}
-}
-
-function getResultRandom(n){
-	return new Promise((resolve, reject) => {
-		setTimeout(() => {
-			if (Math.random() > 0.2) resolve(n + ' ok');
-			else {
-				reject(n + ' rejected');
-				// throw new Error('things go wrong'); what if there's an exception?
-			}
-		}, 200 + Math.floor(800*Math.random()));
-	});
-}
-
-getResultFromRandom('test')
-	.then(value => console.log(value), reason => console.log('error: ' + reason));
-
-getResultFromRandom2('test2').then(value => console.log(value));
-
