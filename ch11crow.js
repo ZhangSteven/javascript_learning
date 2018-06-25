@@ -292,6 +292,7 @@ function sendGossip(nest, message, exceptFor = null){
 	is destroyed, connection status in the network can be updated by
 	broadcasting.
 */
+const {compareArray} = require('./js_utility');
 requestType('connection', (nest, {name, neighbors}, source) => {
 	if (compareArray(nest.state.connections.get(name), neighbors)){
 		return;
@@ -321,43 +322,6 @@ function sendConnection(nest, message, exceptFor=null){
 		request(nest, neighbor, 'connection', message)
 			.then(() => 0)
 			.catch(reason => console.log(`failed: ${nest.name} -> ${neighbor}: ${reason}`));
-	}
-}
-
-function compareArray(list1, list2){
-	/*
-		Compare two arrays regardless of the order of their elements, if they
-		contain the same set of elements, then they are equal. But the elements
-		must be either a string or an integer because we use == operator to 
-		compare. So,
-
-		compareArray(null, null);	// true
-		compareArray(null, []);		// false
-		compareArray([], []);		// true
-		compareArray(['a', 'b', 'c'], ['b', 'a', 'c']);	// true
-		compareArray(['a', 'b', 'b'], ['b', 'a', 'b']);	// true
-		compareArray(['a', 'b', 'b'], ['a', 'a', 'b']);	// false
-
-		Can we convert an array to Map, then compare the two Map?
-	*/
-	if (!list1 || !list2) return list1 == list2;
-	if (list1.length != list2.length) return false;
-	return compareDictionary(arrayToDictionary(list1), arrayToDictionary(list2));
-
-	function arrayToDictionary(list){
-		let d = Object.create(null);
-		for (let el of list){
-			if (!d[el]) d[el] = 1;
-			else d[el]++;
-		}
-		return d;
-	}
-
-	function compareDictionary(d1, d2){
-		for (let key in d1){
-			if (d1[key] != d2[key]) return false;
-		}
-		return true;
 	}
 }
 
@@ -412,7 +376,7 @@ setTimeout(() => {
 
 setTimeout(() => {
 	console.log(findRoute('Big Oak', 'Church Tower', connections));	
-}, 5000);
+}, 5100);
 
 
 
@@ -544,3 +508,6 @@ setTimeout(() => findInStorageA(bigOak, 'events on 2017-12-21')
 			.then(value => console.log(value))
 			.catch(reason => console.log('failed to find storage: ' + reason)), 
 			5300);
+
+
+

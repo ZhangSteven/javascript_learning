@@ -20,8 +20,13 @@ function isError(e){
 	return false;
 }
 
-// console.log(isError(new Error('haha')));	// true
-// console.log(isError(new Error()));			// true
+console.assert(isError(new Error('haha')) === true);
+console.assert(isError(new Error()) === true);
+console.assert(isError(Object.create(null)) === false);
+console.assert(isError({}) === false);
+console.assert(isError('error') === false);
+console.assert(isError(null) === false);
+console.assert(isError(5.4) === false);
 
 
 
@@ -42,5 +47,44 @@ function decimalPlace(value, n){
 
 
 
+/*
+	Compare two arrays regardless of the order of their elements, if they
+	contain the same set of elements, then they are equal. But the elements
+	must be either a string or an integer because we use == operator to 
+	compare.
+*/
+function compareArray(list1, list2){
+
+	if (!list1 || !list2) return list1 == list2;
+	if (list1.length != list2.length) return false;
+	return compareDictionary(arrayToDictionary(list1), arrayToDictionary(list2));
+
+	function arrayToDictionary(list){
+		let d = Object.create(null);
+		for (let el of list){
+			if (!d[el]) d[el] = 1;
+			else d[el]++;
+		}
+		return d;
+	}
+
+	function compareDictionary(d1, d2){
+		for (let key in d1){
+			if (d1[key] != d2[key]) return false;
+		}
+		return true;
+	}
+}
+
+console.assert(compareArray(null, null) === true);
+console.assert(compareArray(null, []) === false);
+console.assert(compareArray([], []) === true);
+console.assert(compareArray(['a', 'b', 'c'], ['b', 'a', 'c']) === true);
+console.assert(compareArray(['a', 'b', 'b'], ['b', 'a', 'b']) === true);
+console.assert(compareArray(['a', 'b', 'b'], ['a', 'a', 'b']) === false);
+
+
+
 exports.isError = isError;
 exports.decimalPlace = decimalPlace;
+exports.compareArray = compareArray;
