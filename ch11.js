@@ -52,9 +52,10 @@ let fifteen = Promise.resolve(15);
 fifteen.then(value => console.log('promised resolved to', value));
 
 // a promise that is 50% chance resolved, else rejected.
+const {decimalPlace} = require('./js_utility');
 let myPromise = new Promise((resolve, reject) => {
 	setTimeout(() => {
-		let value = Math.random();
+		let value = decimalPlace(Math.random(), 2);
 		if (value > 0.5){
 			resolve(`Tick 300, value = ${value}`);
 		} else {
@@ -189,6 +190,59 @@ for (let x of new Group([4,5,6])){
 
 
 /*
+	Handle exceptions in a callback function.
+
+	When a callback function throws an exception, a normal try/catch like
+	below won't work:
+
+	try {
+		setTimeout(() => { throw new Error('error'); }, 600);
+	} catch (_){	// never catches
+		console.log('something goes wrong');
+	}
+
+	Because the try/catch code is finished when we do setTimeout(), at that
+	point of time, nothing goes wrong. However, when the callback throws
+	an exception, there is no catch() clause in the asynchronous call stack
+	to handle it.
+
+	So, we should make sure the callback does not throw any exceptions on its
+	own.
+*/
+const {isError} = require('./js_utility');
+try {
+	new Promise((resolve, reject) => {
+		setTimeout(() => {
+			let value = Math.floor(Math.random() * 10);
+			if (value > 4) resolve(value);
+			else reject(new Error('something failed'));
+		}, 400);	
+	}).then(result => callback(result), failure => callback(failure));
+
+} catch(exception) {
+	callback(exception);
+}
+
+
+function callback(x){
+	try {
+		if (isError(x)) {
+			console.log('callback caught error ' + x);
+			return;
+		}
+
+		if (x < 7) throw new Error('some new error');
+		console.log('callback value =', x);
+	
+	} catch(exception) {
+
+		callback(exception);
+	}
+}
+
+
+
+/*
 	The event loop.
 
 	Asynchronous code (promises, callback functions) and synchronous code
@@ -212,4 +266,6 @@ function calculate(n){
 	console.log('stop calculate()');
 }
 
-console.log('\n\nsynchronous code finishes here\n\n');
+
+
+console.log('\n\nAll synchronous code finishes.\n\n');
