@@ -10,34 +10,16 @@
 
 	One approach to asynchronous programming is to make functions that
 	perform a slow action take an extra argument, a callback function.
-	The action is started, and when it finishes, the callback function 
-	is called with the result.
-
-	From the below example we can see that, the callback functions are
-	called only when all synchronous instructions are finished. So it
-	looks like there are two call stacks, one for the synchronous one,
-	the other for the asynchronous call. Only when the synchronous stack
-	becomes empty then the asynchronous stack become active.
-
-	The sequence of calling the callback functions, however, depend on
-	the events that trigger them. For example, the 'Tick200' is displayed
-	before the 'Tick800'.
 */
-setTimeout(() => console.log('Tick 500'), 500);
-setTimeout(() => console.log('Tick 200'), 200);
-console.log('start calculate()');
-calculate(10000000);
-console.log('calculate() finishes');
+setTimeout(() => console.log('Tick 500'), 500);	// when time out(500ms) do print
 
-function calculate(n){
-	/*
-		Time consuming calculation
-	*/
-	for (let i=0; i<150000000; i++){
-		Math.sqrt((Math.random() + 1) * n);
-	}
+setTimeout(() => { 
+	showResult(Math.random() > 0.5 ? true : false);
+}, 200);
+
+function showResult(result){
+	console.log('Tick 200, result =', result);
 }
-
 
 
 /*
@@ -45,71 +27,50 @@ function calculate(n){
 
 	When performing an asynchronous operation, such as reading a file or getting
 	response from network, the result is not available until sometime in the
-	future. To use that result, we have two ways:
+	future. To use that result, we can use a special object to wrap the future 
+	value (the Promise object), then speicify what to do when the future value 
+	is available.
 
-	1. Pass handlers to the asynchronous operation, so that they are called when
-	the result becomes available.
+	A promise constructor takes a function as argument. When the promise is
+	created, JavaScript environment will pass two built-in functions 
+	(resolve, reject) as input.
 
-	2. Use a special object to wrap the future value (the Promise object), then
-	speicify what to do when the future value is available.
+	myPromise = new Promise((resolve, reject) => {
+	 ... do some asynchronous work ...
+		... if successful, then ...
+		   resolve(some_value);			// leas to a resolved promise
+		... else ...
+		   reject(some_other_value);	// leads to a rejected promise
+	});
 
-	Again, like a callback function, a promise resolves only after all the 
-	synchronous event calls are finished.
+	The easiest way to create a promise is by calling Promise.resolve(value).
+	It creates a new promise wrapping the value, if the value is already a
+	promise, it's simply returned - otherwise, you get a new promise that
+	immediately finishes with your value as its result.
 */
-
-// The first approach: call back.
-doSomething(showResult);
-
-function doSomething(handler){
-	setTimeout(() => { 
-		handler(Math.random() > 0.5 ? true : false);
-	}, 300);
-}
-
-function showResult(result){
-	console.log('after do something, the result is', result);
-}
-
-
-
-// The second approach: Promise
-// 
-// A promise constructor takes a function as argument. When the promise is
-// created, JavaScript environment will pass two built-in functions 
-// (resolve, reject) as input.
-// 
-// myPromise = new Promise((resolve, reject) => {
-//  ... do some asynchronous work ...
-// 	... if job successful, then
-// 	   resolve(some_value);
-// 	... else
-// 	   reject(some_other_value);
-// });
-// 
-// The easiest way to create a promise is by calling Promise.resolve(value).
-// It creates a new promise wrapping the value, if the value is already a
-// promise, it's simply returned - otherwise, you get a new promise that
-// immediately finishes with your value as its result.
-// 
 let fifteen = Promise.resolve(15);
-fifteen.then(value => console.log('The value is', value));
+fifteen.then(value => console.log('promised resolved to', value));
 
-let another = new Promise(resolve => setTimeout(resolve, 200));
-another.then(value => console.log('finished'));
-
+// a promise that is 50% chance resolved, else rejected.
 let myPromise = new Promise((resolve, reject) => {
-	// use a timeout to simulate asynchronous work
 	setTimeout(() => {
 		let value = Math.random();
-		if (value > 0.5 ? true: false){
-			resolve(value);	// create a resolved promise
+		if (value > 0.5){
+			resolve(`Tick 300, value = ${value}`);
 		} else {
-			reject(`value ${value} is too small`);	// a rejected promise
+			reject(`Tick 300, value ${value} too small`);
 		}
 	}, 300);
 });
 
-// handle either resolve or reject status
+/*
+	Then then() function will be called after the promise is settled (resolved
+	or rejected). We can register two functions to it, in the form:
+
+	promise.then(value => {},		// resolve promise handler 
+					reason => {}	// reject promise handler
+				);
+*/
 myPromise.then(value => console.log(value), 
 				reason => console.log('failed:', reason));
 
@@ -118,15 +79,137 @@ myPromise.then(value => console.log(value),
 /*
 	Chain of promises.
 
-	Since 'then' or 'catch' returns a new promise, we can chain them together
-	to register handles for different situations.
+	Each then() or catch() call returns a new promise, so we can chain them
+	together. If they don't return a value (promise) explicitly, then the
+	return value is still a promise resolved to 'undefined'.
+
+	If a promise is resolved, then the catch() call following it will be
+	skipped. If a promise is rejected, then the then() call following it
+	will be skipped if the then() has only a successful handler.
 */
 
-// doomed to rejected
+// A rejected promise skips the then() call following it, because
 new Promise((_, reject) => reject(new Error('Failed')))
-	.then(value => console.log('successful handler 1'))
+	.then(value => console.log('successful handler 1'))	// skipped
 	.catch(reason => {
-		console.log('caught failure ' + reason);
+		console.log('error handler 1 ' + reason);
 		return 'nothing';	// a new promise returned
 	})
-	.then(value => console.log('successful handler 2', value));
+	.then(value => console.log('successful handler 2:', value));
+
+// A resolved promise skips the catch() call.
+new Promise(resolve => resolve(0))
+	.then(value => console.log('successful handler 3'))		// return a promise
+															// of undefined
+	.catch(reason => console.log('error handler 2 ' + reason))	// skipped
+	.then(value => console.log('successful handler 4:', value));// undefined
+
+
+
+/*
+	Generator function.
+
+	A generator function is a function that has its own state and freezes
+	its local state each time it hits a 'yield' statement.
+
+	Therefore a generator function is like an iterator which yields multiple
+	values, the iterating stops when the function returns.
+*/
+
+// a generator function that never returns, yielding an infinite set of
+// numbers.
+function* powers(n){	
+	for(let current=n;; current *= n){
+		yield current;
+	}
+}
+
+for (let x of powers(3)){
+	if (x > 50) break;
+	console.log(x);
+}
+
+// 3
+// 9
+// 27
+
+/*
+	An iterator example.
+
+	If we want an iterator for a class, we need to create another class
+	to store the state during iteration.
+*/
+class Group {
+	constructor(elements){
+		this.elements = elements;
+	}
+}
+
+class GroupIterator {
+	constructor(group){
+		this.group = group;
+		this.position = 0;
+	}
+
+	next(){
+		if (this.position == this.group.elements.length){
+			return {done: true};
+		}
+
+		let value = this.group.elements[this.position];
+		this.position++;
+		return {value: value, done: false};
+	}
+}
+
+Group.prototype[Symbol.iterator] = function(){
+	return new GroupIterator(this);
+}
+
+for (let x of new Group([1,2,3])){
+	console.log('group iterator', x);
+}
+
+
+/*
+	Instead of create a new class to store state, we can use a generator
+	function.
+*/
+
+Group.prototype[Symbol.iterator] = function*(){
+	for (let i=0; i<this.elements.length;i++){
+		yield this.elements[i];
+	}
+}
+
+for (let x of new Group([4,5,6])){
+	console.log('group generator', x);
+}
+
+
+
+/*
+	The event loop.
+
+	Asynchronous code (promises, callback functions) and synchronous code
+	are put into two different call stacks.
+
+	Only when the synchronous code call stack is empty, JavaScript environment
+	starts to execute the asynchronous call stack.
+
+	Therefore, even if the below calculation takes more than 1 second, those
+	asynchronous calls or promises that settle sooner than that still occur
+	after them.
+*/
+calculate(10000000);	// do some time consuming calculation
+calculate(20000000);
+
+function calculate(n){
+	console.log('start calculate()');
+	for (let i=0; i<100000000; i++){
+		Math.sqrt((Math.random() + 1) * n);
+	}
+	console.log('stop calculate()');
+}
+
+console.log('\n\nsynchronous code finishes here\n\n');
