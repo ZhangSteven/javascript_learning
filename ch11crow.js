@@ -495,9 +495,10 @@ async function findInStorageA(nest, name){
 			result = await routeRequest(nest, source, 'storage', name);
 			if (result != null) return result;
 		} catch (_) { 
-			/* we do try/catch so that rejected promise come here,
+			/* 
+				we do try/catch so that rejected promise come here,
 				simeply ignore them.
-			*/ 
+			*/
 		}
 	}
 
@@ -508,6 +509,26 @@ setTimeout(() => findInStorageA(bigOak, 'events on 2017-12-21')
 			.then(value => console.log(value))
 			.catch(reason => console.log('failed to find storage: ' + reason)), 
 			5300);
+
+
+
+/*
+	Asynchronous bugs.
+
+	
+*/
+function anyStorage(nest, source, name){
+	if (source == nest.name) return storage(nest, name);
+	else return routeRequest(nest, source, 'storage', name);
+}
+
+async function chicks(nest, year){
+	let list = '';
+	await Promise.all(network(nest).map(async name => {
+		list += `${name}: ${await anyStorage(nest, name, `chicks in ${year}`)}\n`;
+	}));
+	return list;
+}
 
 
 
