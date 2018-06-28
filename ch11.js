@@ -190,10 +190,13 @@ for (let x of new Group([4,5,6])){
 
 
 /*
-	Handle exceptions in a callback function.
+	The event loop.
 
-	When a callback function throws an exception, a normal try/catch like
-	below won't work:
+	Asynchronous code (promises, callback functions) and synchronous code
+	are put into different call stacks. Asynchronous events, e.g., time out,
+	promise settles (resolve/reject), no matter how soon they happen, will
+	not be handled until the synchronous code call stack is empty. Therefore,
+	the below code won't work:
 
 	try {
 		setTimeout(() => { throw new Error('error'); }, 600);
@@ -201,55 +204,28 @@ for (let x of new Group([4,5,6])){
 		console.log('something goes wrong');
 	}
 
-	Because the try/catch code is finished when we do setTimeout(), at that
-	point of time, nothing goes wrong. However, when the callback throws
-	an exception, there is no catch() clause in the asynchronous call stack
-	to handle it.
+	This is because the try/catch code is finished when we do setTimeout(), 
+	at that point of time, nothing goes wrong. The exception is thrown when
+	the runtime environment starts to handle asynchronous events, by that time
+	the catch() handler is no longer there.
 
 	So, we should make sure the callback does not throw any exceptions on its
-	own.
+	own. 
 */
-const {isError} = require('./js_utility');
-try {
-	new Promise((resolve, reject) => {
-		setTimeout(() => {
-			let value = Math.floor(Math.random() * 10);
-			if (value > 4) resolve(value);
-			else reject(new Error('something failed'));
-		}, 400);	
-	}).then(result => callback(result), failure => callback(failure));
-
-} catch(exception) {
-	callback(exception);
-}
-
-
-function callback(x){
-	try {
-		if (isError(x)) {
-			console.log('callback caught error ' + x);
-			return;
+new Promise((resolve, reject) => {
+	setTimeout(() => {
+		try {
+			throw new Error('something failed');
+		} catch (exception){
+			reject(exception);
 		}
-
-		if (x < 7) throw new Error('some new error');
-		console.log('callback value =', x);
-	
-	} catch(exception) {
-
-		callback(exception);
-	}
-}
+	}, 400);	
+}).catch(failure => console.log('caught exception' + failure));
 
 
 
 /*
-	The event loop.
-
-	Asynchronous code (promises, callback functions) and synchronous code
-	are put into two different call stacks.
-
-	Only when the synchronous code call stack is empty, JavaScript environment
-	starts to execute the asynchronous call stack.
+	
 
 	Therefore, even if the below calculation takes more than 1 second, those
 	asynchronous calls or promises that settle sooner than that still occur

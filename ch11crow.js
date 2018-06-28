@@ -408,7 +408,7 @@ function routeRequest(nest, target, type, content){
 	return request(nest, via, 'route', {target, type, content});
 }
 
-// we need to wait 5100ms so that bigOak has the network graph
+// we need to wait some time, say 5000ms so that bigOak has the network graph
 // in its local state object.
 setTimeout(() => {
 	routeRequest(bigOak, 'Cow Pasture', 'echo', 'hello 2')
@@ -514,14 +514,25 @@ setTimeout(() => findInStorageA(bigOak, 'events on 2017-12-21')
 
 /*
 	Asynchronous bugs.
-
 	
+	Find chicks information from storage of all nests.
+
+	The below chicks() and chicks2() are flawed.
 */
 function anyStorage(nest, source, name){
 	if (source == nest.name) return storage(nest, name);
 	else return routeRequest(nest, source, 'storage', name);
 }
 
+/*
+	list is:
+	Church Tower: 0
+
+	The problem is, inside each call to that list += xxx, 'list' starts with
+	the current value at the time when the statement starts execution, which
+	is an empty string. Therefore, its final value is the reply of the node
+	that replies the latest.
+*/
 async function chicks(nest, year){
 	let list = '';
 	await Promise.all(network(nest).map(async name => {
@@ -530,5 +541,99 @@ async function chicks(nest, year){
 	return list;
 }
 
+// some time delay is needed because the network graph (connections) can build up
+setTimeout(() => {
+	chicks(bigOak, 2017).then(result => console.log('result chicks is', result));
+}, 5400);
 
+
+
+/*
+	list is:
+
+	BigOak: [object promise]
+	Great Pine: [object promise]
+	...
+	
+	When we don't wait for anyStore() to resolve, its return value converted
+	to string will be '[object promise]'. Since map() does not call an async 
+	function, we cannot wait for anyStorage() to resolve, that function will
+	return a value 'undefined' and Promise.all() resolves instantly.
+*/
+async function chicks2(nest, year){
+	let list = '';
+	let result = await Promise.all(network(nest).map(name => {
+		list += `${name}: ${anyStorage(nest, name, `chicks in ${year}`)}\n`;
+	}));
+	console.log(result);
+	return list;
+}
+
+setTimeout(() => {
+	chicks2(bigOak, 2017).then(result => console.log('result chicks2 is', result));
+}, 5500);
+
+
+
+/*
+	This version works.
+*/
+function chicks3(nest, year){
+	return Promise.all(network(nest).map(async name => {
+		return `${name}: ${await anyStorage(nest, name, `chicks in ${year}`)}`;
+	}));
+}
+
+setTimeout(() => {
+	chicks3(bigOak, 2017)
+	.then(result => console.log('result chicks3 is', result.join('\n')));
+}, 6000);
+
+
+
+/*
+	Exercises.
+
+	Tracking the scapel.
+*/
+async function locateScalpel(nest){
+	let scalpel = await storage(nest, 'scalpel');
+	let source = nest.name;
+	for (;scalpel != source;){
+		source = scalpel;
+		scalpel = await anyStorage(nest, source, 'scalpel');
+	}
+	return scalpel;
+}
+
+setTimeout(() => {
+	locateScalpel(bigOak).then(result => console.log('scalpel', result),
+							reason => console.log('scalpel failed ' + reason));
+}, 6200);
+
+
+
+
+/*
+	This version does not use asynchronous function, to wait for promises to
+	resolve it uses a recursive function.
+
+	This version has feature that if a node does not reply in time which leads
+	to a rejected promise, then it will retry until it gets a response.
+*/
+function locateScalpel2(nest){
+
+	function next(source){
+		return anyStorage(nest, source, 'scalpel')
+			.then(result => result == source ? result: next(result), 
+					() => next(source));
+	}
+
+	return next(nest.name);
+}
+
+setTimeout(() => {
+	locateScalpel(bigOak).then(result => console.log('scalpel2', result),
+							reason => console.log('scalpel2 failed ' + reason));
+}, 6500);
 

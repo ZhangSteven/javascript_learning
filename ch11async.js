@@ -9,9 +9,14 @@
 
 
 getResult().then(value => console.log('getResult(): ' + value));
-getResult2().then(() => {}, reason => console.log('getResult2(): ' + reason));
-getResult3().then(value => console.log('getResult3(): ' + value));
-getException().then(() => {}, reason => console.log('getException(): ' + reason));
+getResultError()
+	.then(() => {}, reason => console.log('getResultError(): ' + reason));
+getResultErrorCaptured()
+	.then(value => console.log('getResultErrorCaptured(): ' + value));
+getException()
+	.then(() => {}, reason => console.log('getException(): ' + reason));
+
+
 
 /*
 	Caution! this causes the program to stop execution.
@@ -38,7 +43,7 @@ async function getResult(){
 
 
 
-async function getResult2(){
+async function getResultError(){
 	let result = await resultError(600);
 	return result;
 }
@@ -46,10 +51,10 @@ async function getResult2(){
 
 
 /*
-	If we use a try/catch clause to wrap the await statement and the awaited 
-	promise is rejected, then the catch() will be active.
+	In an asynchronous function, rejected promises are convered to exceptions
+	by await, we can use try/catch to capture that.
 */
-async function getResult3(){
+async function getResultErrorCaptured(){
 	try {
 		let result = await resultError(700);
 		return result;
@@ -61,8 +66,8 @@ async function getResult3(){
 
 
 /*
-	When there is an uncaught exception, it will lead to a rejected promise
-	whose reason is the exception.
+	In an asynchronous function, throwing an exception will lead to an rejected
+	promise, whose reason is the exception's text.
 */
 async function getException(){
 	throw new Error('things go wrong');
