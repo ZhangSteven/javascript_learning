@@ -99,6 +99,8 @@ function parseExpression(program){
 
 
 
+// skip white spaces, but will be changed to skip comments as well
+// (see at the bottom of the program, let skipSpace = () => {})
 function skipSpace(string){
 	let first = string.search(/\S/);
 	if (first == -1) return '';
@@ -264,17 +266,132 @@ specialForms.define = (args, scope) => {
 /*
 	The environment
 
-	The scope accepted by evaluate is an object with properties whose
-	names correspond to binding names and whose values correspond to
-	the values those bindings are bound to. Let's define an object to
-	represent the global scope.
+	The scope accepted by evaluate is an object with properties whose names 
+	correspond to binding names and whose values correspond to the values 
+	those bindings are bound to. Let's define an object to represent the 
+	global scope.
 */
 const topScope = Object.create(null);
-topScope.true = true;
+topScope.true = true;	// Egg 'true' is true
 topScope.false = false;
 
 
 
+/*
+	Supply some basic arithmetic and comparison operators, we will also
+	add some function values to the scope.
+
+	For example, for operator '+',
+
+	topScope['+'] = function(a, b){return a + b;}
+
+	Note here we use the 'Function' constructor to create function objects
+	dynamically, Function('<comma separated arg list>', '<function body>');
+*/
+for (let op of ['+', '-', '*', '/', '==', '<', '>']){
+	topScope[op] = Function('a, b', `return a ${op} b;`);
+}
+
+
+
+// define the 'print' operator
+topScope.print = value => {
+	console.log(value);
+	return value;
+};
+
+
+
+/*
+	Define a 'fun' operator in Egg for functions.
+
+	Note that we define a local scope object for the function, so that any
+	new variable definitions won't polute the parent scope.		
+*/
+specialForms.fun = (args, scope) => {
+	if (args.length == 0){
+		throw new SyntaxError('Functions need a body');
+	}
+	let body = args[args.length - 1];
+	let params = args.slice(0, args.length-1).map(expr => {
+		if (expr.type != 'word'){
+			throw new SyntaxError('Parameter names must be words');
+		}
+		return expr.name;
+	});
+
+	return function(){
+		if (arguments.length != params.length){
+			throw new SyntaxError('Wrong number of arguments');
+		}
+
+		let localScope = Object.create(scope);
+		for (let i=0; i<arguments.length; i++){
+			localScope[params[i]] = arguments[i];
+		}
+
+		return evaluate(body, localScope);
+	};
+};
+
+
+
+/*
+	Exercises 1. Array in Egg
+
+	array(...args): return an array
+	length(array): return # elements in array
+	element(array, n): return nth element in array
+*/
+specialForms.array = (args, scope) => {
+	if (args.length == 0) return [];
+	return args.map(el => evaluate(el, scope));
+};
+
+specialForms.length = (args, scope) => {
+	if (args.length != 1){
+		throw new SyntaxError('Wrong number of arguments');
+	}
+	return evaluate(args[0], scope).length;
+};
+
+specialForms.element = (args, scope) => {
+	if (args.length != 2){
+		throw new SyntaxError('Wrong number of arguments');
+	}
+	return evaluate(args[0], scope)[evaluate(args[1], scope)];
+};
+
+
+
+/*
+	Comments. Anything that starts with '#' in a line is treated as comments.
+
+	Modify the skipSpace() function so that ignores both the white space
+	and the comments, so that we can live with the comments.
+*/
+skipSpace = (string) => {
+	let first = string.search(/\S/);
+	if (first > -1) string = string.slice(first);
+
+	let first = string.search(/\r?\n/);
+	let comment = string.slice(0, first).search(/#/);
+	if (comment == -1) return string;
+
+	// take out all quoted text like "xxx" 
+};
+
+
+
+/*
+	Finally, a 'run' function to parse and evaluate the program. Note we 
+	need to create a new scope object for each run to keep the scope clean.
+*/
+function run(program){
+	return evaluate(parse(program), Object.create(topScope));
+}
+
+
+
 exports.parse = parse;
-exports.topScope = topScope;
-exports.evaluate = evaluate;
+exports.run = run;
