@@ -408,7 +408,9 @@ skipSpace = (string) => {
 
 	let lineBreak = string.search(/\n/);
 	if (lineBreak != -1){
-		return skipComments(string.slice(0, lineBreak)) + string.slice(lineBreak);
+		let result = skipComments(string.slice(0, lineBreak)) + string.slice(lineBreak);
+		if (result[0] == '\n') return skipSpace(result);
+		else return result;
 	} else return skipComments(string);
 };
 

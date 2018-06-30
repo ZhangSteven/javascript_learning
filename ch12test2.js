@@ -34,9 +34,8 @@ let s2 = `hello ok
 console.assert(skipSpace(string) == s2);
 
 string = `	# ok test
-	a = 2`;
-s2 = `
-	a = 2`;
+	a = 2 # ok 33 `;
+s2 = `a = 2 `;
 console.assert(skipSpace(string) == s2);
 
 string = `	test # ok
