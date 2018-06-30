@@ -43,3 +43,17 @@ string = `	test # ok
 s2 = `test 
 	a = 2`;
 console.assert(skipSpace(string) == s2);
+
+string = `  "text#ok" # ok "#123" 
+	a = 2`;
+s2 = `"text#ok" 
+	a = 2`;
+// console.log(`'${skipSpace(string)}'`);
+console.assert(skipSpace(string) == s2);
+
+string = `  "text#ok 
+	hello", a = 2`;
+s2 = `"text#ok 
+	hello", a = 2`;
+// console.log(`'${skipSpace(string)}'`);
+console.assert(skipSpace(string) == s2);
