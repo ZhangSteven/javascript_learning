@@ -372,13 +372,44 @@ specialForms.element = (args, scope) => {
 */
 skipSpace = (string) => {
 	let first = string.search(/\S/);
-	if (first > -1) string = string.slice(first);
+	if (first > -1) string = string.slice(first);	// remove leading whitespace
+		
+	/*
+		In a line, comments are in between a # and end of line.
 
-	let first = string.search(/\r?\n/);
-	let comment = string.slice(0, first).search(/#/);
-	if (comment == -1) return string;
+		is there any # in the current line?
+		if yes, then
+			is there any " in front of the #?
+				if yes, is there a closing " before end of the line?
+					if yes, skip that pair of "" and search for # again
 
-	// take out all quoted text like "xxx" 
+				if no, this is where comments start
+	*/
+
+	function skipComments(line){
+		let comment = line.search(/#/), tempLine = line;
+		let match, quote, toEndOfLine;
+
+		while (comment != -1) {
+			quote = tempLine.search(/"/);
+			if (quote != -1 && quote < comment){
+				match = /^[^"]*("[^"]*")/.exec(tempLine);
+				if (!match) return line;	// no closing "
+				tempLine = tempLine.slice(0, match.index) + tempLine.slice(match.index + match[1].length); 
+				comment = tempLine.search(/#/);
+			} else {
+				toEndOfLine = tempLine.length - comment;
+				break;
+			}
+		}
+		if(toEndOfLine) return line.slice(0, line.length - toEndOfLine);
+		else return line;
+	}
+
+	let lineBreak = string.search(/\n/);
+	if (lineBreak != -1){
+		return skipComments(string.slice(0, lineBreak)) + string.slice(lineBreak);
+	} else return skipComments(string);
 };
 
 
@@ -395,3 +426,4 @@ function run(program){
 
 exports.parse = parse;
 exports.run = run;
+exports.skipSpace = skipSpace;
