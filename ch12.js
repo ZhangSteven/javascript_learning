@@ -101,11 +101,11 @@ function parseExpression(program){
 
 // skip white spaces, but will be changed to skip comments as well
 // (see at the bottom of the program, let skipSpace = () => {})
-function skipSpace(string){
-	let first = string.search(/\S/);
-	if (first == -1) return '';
-	return string.slice(first);
-}
+// function skipSpace(string){
+// 	let first = string.search(/\S/);
+// 	if (first == -1) return '';
+// 	return string.slice(first);
+// }
 
 
 
@@ -370,7 +370,7 @@ specialForms.element = (args, scope) => {
 	Modify the skipSpace() function so that ignores both the white space
 	and the comments, so that we can live with the comments.
 */
-skipSpace = (string) => {
+function skipSpace(string) {
 	let first = string.search(/\S/);
 	if (first > -1) string = string.slice(first);	// remove leading whitespace
 		
@@ -409,8 +409,13 @@ skipSpace = (string) => {
 	let lineBreak = string.search(/\n/);
 	if (lineBreak != -1){
 		let result = skipComments(string.slice(0, lineBreak)) + string.slice(lineBreak);
-		if (result[0] == '\n') return skipSpace(result);
+
+		// after removing comments, if current line is emtpy, then we need to
+		// call skipSpace() again to make sure there's non-white space, non-comments
+		// character as the first character
+		if (result[0] == '\n') return skipSpace(result.slice(1));
 		else return result;
+
 	} else return skipComments(string);
 };
 

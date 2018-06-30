@@ -28,9 +28,11 @@ string = '  "text#ok" # ok "#123" ';
 console.assert(skipSpace(string) == '"text#ok" ');
 
 string = `	 hello ok
-	hello 2`;
+	hello 2
+		hello 3`;
 let s2 = `hello ok
-	hello 2`;
+	hello 2
+		hello 3`;
 console.assert(skipSpace(string) == s2);
 
 string = `	# ok test
