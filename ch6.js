@@ -1,5 +1,3 @@
-<script>
-
 /*
 	Chapter 6. The Secret Life of Objects
 */
@@ -141,8 +139,8 @@ function Rabbit(type){
 	let weirdRabbit = Object.create(Rabbit.prototype);
 	weirdRabbit.type = 'weird';
 */
-console.log(Rabbit.prototype);	// strange? it already gets the speak 
-								// property
+console.log(Rabbit.prototype);
+
 Rabbit.prototype.speak = function(line){
 	console.log(`The ${this.type} rabbit says "${line}"`);
 };
@@ -151,7 +149,13 @@ weirdRabbit.speak('Hello');
 console.log(weirdRabbit);
 
 
-// you can do the following as well.
+
+/*
+	You can bind Rabbit.prototype to another object.
+
+	In that case, new Rabbit() will create objects following the new prototype,
+	but existing Rabbit objects still use the old prototype.
+*/
 Rabbit.prototype = {
 	move(distance){
 		console.log(`The ${this.type} rabbit moves ${distance} meters`);
@@ -184,7 +188,16 @@ weirdRabbit.speak('hello again');	// still works.
 	3. Initialize the new object's properties.
 
 	For the moment, class declarations only allows methods - properties that
-	hold functions - to be added to the prototype.
+	hold functions - to be added to the prototype. Therefore, the following is
+	not allowed:
+
+	class A {
+		
+		constructor(...) { this... }	// OK
+		doSth: function(){ ... } 		// OK
+
+		value: 88	// NOT allowed
+	}
 */
 class GoodRabbit {
 
@@ -416,5 +429,3 @@ console.log(`temperature is ${temp.celsius}C`);
 
 let temp2 = Temperature.fromFahreheit(50);
 console.log(`temperature is ${temp2.celsius}C`);
-
-</script>
