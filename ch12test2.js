@@ -47,9 +47,9 @@ s2 = `test
 console.assert(skipSpace(string) == s2);
 
 string = `  "text#ok" # ok "#123" 
-	a = 2`;
+	a = 2	# comments`;
 s2 = `"text#ok" 
-	a = 2`;
+	a = 2	# comments`;
 // console.log(`'${skipSpace(string)}'`);
 console.assert(skipSpace(string) == s2);
 

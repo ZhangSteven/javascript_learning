@@ -98,15 +98,18 @@ function parseExpression(program){
 }
 
 
+/*
+	Skip white spaces.
 
-// skip white spaces, but will be changed to skip comments as well
-// (see at the bottom of the program, let skipSpace = () => {})
-// function skipSpace(string){
-// 	let first = string.search(/\S/);
-// 	if (first == -1) return '';
-// 	return string.slice(first);
-// }
+	This is replaced by another version that skips comments as well
+	(see at the bottom of the program, exercise 2)
 
+function skipSpace(string){
+	let first = string.search(/\S/);
+	if (first == -1) return '';
+	return string.slice(first);
+}
+*/
 
 
 /*
@@ -365,19 +368,17 @@ specialForms.element = (args, scope) => {
 
 
 /*
-	Comments. Anything that starts with '#' in a line is treated as comments.
+	Exercise 2. Modify the skipSpace() function so that it skips comments
+	as well.
 
-	Modify the skipSpace() function so that ignores both the white space
-	and the comments, so that we can live with the comments.
+	Comments are anything between a # and end of line.
 */
 function skipSpace(string) {
 	let first = string.search(/\S/);
 	if (first > -1) string = string.slice(first);	// remove leading whitespace
 		
 	/*
-		In a line, comments are in between a # and end of line.
-
-		is there any # in the current line?
+		Is there any # in the current line?
 		if yes, then
 			is there any " in front of the #?
 				if yes, is there a closing " before end of the line?
@@ -385,7 +386,6 @@ function skipSpace(string) {
 
 				if no, this is where comments start
 	*/
-
 	function skipComments(line){
 		let comment = line.search(/#/), tempLine = line;
 		let match, quote, toEndOfLine;
@@ -410,9 +410,11 @@ function skipSpace(string) {
 	if (lineBreak != -1){
 		let result = skipComments(string.slice(0, lineBreak)) + string.slice(lineBreak);
 
-		// after removing comments, if current line is emtpy, then we need to
-		// call skipSpace() again to make sure there's non-white space, non-comments
-		// character as the first character
+		/*		
+			If current line is emtpy, then we need to call skipSpace() again to 
+			make sure subsequent line's leading white space or comments are removed
+			as well.
+		*/
 		if (result[0] == '\n') return skipSpace(result.slice(1));
 		else return result;
 

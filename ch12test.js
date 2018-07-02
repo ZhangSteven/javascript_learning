@@ -110,3 +110,20 @@ program = `
 	)
 `;
 console.assert(run(program) == 9);
+
+
+
+// Test comments
+program = `#hello
+	x`;
+console.assert(JSON.stringify(parse(program)) == JSON.stringify(
+	{type: 'word', name: 'x'}));
+
+program = `f # plusOne
+	# two
+	()`;
+console.assert(JSON.stringify(parse(program)) == JSON.stringify(
+	{type: 'apply', 
+		operator: {type: 'word', name: 'f'}, 
+		args: []
+	}));
