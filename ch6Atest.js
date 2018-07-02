@@ -27,6 +27,11 @@ let box = new LockedBox(1, 2, 3, true);
 	does not affect box2 again.
 */
 let box2 = Object.create(box);
+
+for (let name of ['_length', '_width', '_height']){
+	console.log(`box has property ${name}: ${box.hasOwnProperty(name)}`);
+	console.log(`box2 has property ${name}: ${box2.hasOwnProperty(name)}\n`);
+}
 console.log(`box volumn ${box.volumn}`);
 console.log(`box2 volumn ${box2.volumn}`);
 

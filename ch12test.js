@@ -127,3 +127,35 @@ console.assert(JSON.stringify(parse(program)) == JSON.stringify(
 		operator: {type: 'word', name: 'f'}, 
 		args: []
 	}));
+
+
+
+// Test set()
+program = `
+	do(
+		define(x, 4),
+		define(setx, fun(val, set(x, val))),
+		setx(50),
+		print(x)
+	)`;
+console.assert(run(program) == 50);
+
+program = `
+	do(
+		define(x, 4),
+		set(x, 88),
+		print(x)
+	)`;
+console.assert(run(program) == 88);
+
+program = `
+	do(
+		define(x, 4),
+		set(y, 88)
+	)
+`;
+try{
+	run(program)
+} catch(exception){
+	console.assert(exception instanceof ReferenceError);
+}

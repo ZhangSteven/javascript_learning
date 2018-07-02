@@ -424,6 +424,57 @@ function skipSpace(string) {
 
 
 /*
+	Exercise 3. Fixing Scope.
+
+	Each function call has its own local scope. When we use define(x, value),
+	if 'x' already exists in the parent scope but not in local scope, it will
+	create another 'x' in the local scope and give it a value because,
+
+	let localsocpe = Object.create(scope);
+	localscope['x'] = value;	// create local 'x' if it doesn't exist
+
+	Now we want to create another special form, set, so that set(x, value)
+	does the following:
+
+	1. update 'x' if it's in local scople or parent scope, but never creates
+		a new 'x' in any scope.
+
+	2. if 'x' does not exist in local scope, then throw a ReferenceError.
+*/
+specialForms.set = (args, scope) => {
+	if (args.length != 2 || args[0].type != 'word'){
+		throw new SyntaxError('Incorrect use of set');
+	}
+	let value = evaluate(args[1], scope);
+	let name = args[0].name;
+
+	/*
+		Does arg exist at all?
+		if yes, does it exist in local scope?
+			if yes, update the value directly
+			if no, get the scope's prototype and update it there
+
+		if no, throw ReferenceError
+	*/
+	if (name in scope){
+		/*
+			Because the top most scope is created as Object.create(null), 
+			i.e., it does not inherit Object, so we cannot use 
+			scope.hasOwnproperty(), instead we need to use the below clumpsy form.
+		*/
+		if (Object.prototype.hasOwnProperty.call(scope, name)){
+			scope[name] = value;
+		} else {
+			Object.getPrototypeOf(scope)[name] = value;
+		}
+		return value;
+		
+	} else throw new ReferenceError('variable not in scope');
+};
+
+
+
+/*
 	Finally, a 'run' function to parse and evaluate the program. Note we 
 	need to create a new scope object for each run to keep the scope clean.
 */
