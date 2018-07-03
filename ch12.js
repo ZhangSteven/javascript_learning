@@ -87,7 +87,8 @@ function parseExpression(program){
 		expr = {type: 'value', value: match[1]};
 	} else if (match = /^\d+\b/.exec(program)){
 		expr = {type: 'value', value: Number(match[0])};
-	} else if (match = /^[^\s(),"]+/.exec(program)){
+	} else if (match = /^[^\s(),#"]+/.exec(program)){	// '#' is not allowed so that comments
+														// is not in variable names
 		expr = {type: 'word', name: match[0]};
 	} else {
 		throw new SyntaxError('Unexpected syntax: ' + program);
@@ -373,6 +374,10 @@ specialForms.element = (args, scope) => {
 
 	Comments are anything between a # and end of line.
 */
+
+/*
+	The below code works but not so elegent.
+
 function skipSpace(string) {
 	let first = string.search(/\S/);
 	if (first > -1) string = string.slice(first);	// remove leading whitespace
@@ -419,22 +424,22 @@ function skipSpace(string) {
 
 	} else return skipComments(string);
 }
-
+*/
 
 
 /*
-	The below code is the from book's answer, however, it fails the case:
+	The below code is the from book's answer, but it fails the case:
 
 	define('x#ok\n,2')
 
-	It treats 'x#ok' as the variable name, instead it should treat 'x' as
-	the variable name.
+	So we modify the parse() function so that it does not contain '#' in variable
+	names. Then it works.
 */
-// function skipSpace(string){
-// 	let skippable = string.match(/^(\s|#.*)*/);
-// 	if (skippable) return string.slice(skippable[0].length);
-// 	else return string;
-// }
+function skipSpace(string){
+	let skippable = string.match(/^(\s|#.*)*/);
+	if (skippable) return string.slice(skippable[0].length);
+	else return string;
+}
 
 
 

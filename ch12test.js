@@ -128,6 +128,22 @@ console.assert(JSON.stringify(parse(program)) == JSON.stringify(
 		args: [{type: 'word', name: 'x'}]
 	}));
 
+program = `define(x, "test#ok
+	good") # comments`;
+console.assert(JSON.stringify(parse(program)) == JSON.stringify(
+	{type: 'apply', 
+		operator: {type: 'word', name: 'define'}, 
+		args: [{type: 'word', name: 'x'}, {type: 'value', value: 'test#ok\n\tgood'}]
+	}));
+
+program = `define(x#comments,
+	, 2) # hello`;
+console.assert(JSON.stringify(parse(program)) == JSON.stringify(
+	{type: 'apply', 
+		operator: {type: 'word', name: 'define'}, 
+		args: [{type: 'word', name: 'x'}, {type: 'value', value: 2}]
+	}));
+
 
 
 // Test exercise 4: set()
