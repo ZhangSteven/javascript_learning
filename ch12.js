@@ -460,13 +460,37 @@ specialForms.set = (args, scope) => {
 		/*
 			Because the top most scope is created as Object.create(null), 
 			i.e., it does not inherit Object, so we cannot use 
-			scope.hasOwnproperty(), instead we need to use the below clumpsy form.
+			scope.hasOwnproperty(), instead we need to use the clumpsy 
+			way: Object.prototype.hasOwnProperty.call()
 		*/
+
+		/*
+			Below code doesn't work. Because it only searches the parent level,
+			suppose there are 3 levels of scope1,
+
+			s1 (top level)
+			s2 (Object.create(s1))
+			s3 (Object.create(s2))
+
+			Suppose variable 'x' is defiend in s1 and we call set(x, 10) in s3, 
+			the result is another variable 'x' is created in s2. But what we 
+			want is to change 'x' in s1.
+
 		if (Object.prototype.hasOwnProperty.call(scope, name)){
 			scope[name] = value;
 		} else {
-			Object.getPrototypeOf(scope)[name] = value;
+			let d = Object.getPrototypeOf(scope);
+			console.log(d);
+			d[name] = value;
 		}
+		return value;
+		*/
+		
+		while(!Object.prototype.hasOwnProperty.call(scope, name)){
+			scope = Object.getPrototypeOf(scope)
+			// console.log(scope);
+		}
+		scope[name] = value;
 		return value;
 		
 	} else throw new ReferenceError('variable not in scope');

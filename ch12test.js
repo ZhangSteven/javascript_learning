@@ -70,7 +70,7 @@ console.assert(run(program) == 1024);
 
 
 
-// Test array
+// Test exercise 1: array
 program = `
 	do(
 		define(sum, 
@@ -96,7 +96,7 @@ console.assert(run(program) == 14);
 
 
 
-// Test closure
+// Test exercise 2: closure
 program = `
 	do(
 		define(f, 
@@ -113,40 +113,56 @@ console.assert(run(program) == 9);
 
 
 
-// Test comments
+// Test exercise 3: comments
 program = `#hello
 	x`;
 console.assert(JSON.stringify(parse(program)) == JSON.stringify(
 	{type: 'word', name: 'x'}));
 
 program = `f # plusOne
-	# two
-	()`;
+	# this line is comments
+	(x)`;
 console.assert(JSON.stringify(parse(program)) == JSON.stringify(
 	{type: 'apply', 
 		operator: {type: 'word', name: 'f'}, 
-		args: []
+		args: [{type: 'word', name: 'x'}]
 	}));
 
 
 
-// Test set()
-program = `
-	do(
-		define(x, 4),
-		define(setx, fun(val, set(x, val))),
-		setx(50),
-		print(x)
-	)`;
-console.assert(run(program) == 50);
-
-program = `
+// Test exercise 4: set()
+program = `	# in local scope
 	do(
 		define(x, 4),
 		set(x, 88),
 		print(x)
 	)`;
 console.assert(run(program) == 88);
+
+program = ` # 2 scopes, both add() and setx() are in level 2 scope
+	do(
+		define(x, 0),
+		define(setx, fun(value, set(x, value))),
+		define(add, fun(a, b, +(a, b))),
+		print(+(add(50, setx(50)), x))
+	)`;
+console.assert(run(program) == 150);
+
+program = ` # 3 scopes, setx() is in level 3 scope
+	do(
+		define(x, 0),
+		define(addset, fun(value, 
+							do(
+								define(setx, fun(value, set(x, value))),
+								+(value, setx(value))
+							)
+						)
+				),
+		print(+(addset(50), x))
+	)`;
+console.assert(run(program) == 150);
+
+
 
 program = `
 	do(
