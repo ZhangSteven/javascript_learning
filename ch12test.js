@@ -119,7 +119,7 @@ program = `#hello
 console.assert(JSON.stringify(parse(program)) == JSON.stringify(
 	{type: 'word', name: 'x'}));
 
-program = `f # plusOne
+program = `f# plusOne
 	# this line is comments
 	(x)`;
 console.assert(JSON.stringify(parse(program)) == JSON.stringify(
@@ -162,8 +162,7 @@ program = ` # 3 scopes, setx() is in level 3 scope
 	)`;
 console.assert(run(program) == 150);
 
-
-
+// doomed to fail
 program = `
 	do(
 		define(x, 4),

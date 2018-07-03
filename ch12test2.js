@@ -15,8 +15,8 @@ console.assert(skipSpace(string) == 'hello ok');
 string = '	# ok test';
 console.assert(skipSpace(string) == '');
 
-string = '  text # ok ';
-console.assert(skipSpace(string) == 'text ');
+string = '  text# ok ';
+console.assert(skipSpace(string) == 'text');
 
 string = '  "text" # ok ';
 console.assert(skipSpace(string) == '"text" ');

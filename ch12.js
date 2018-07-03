@@ -377,15 +377,15 @@ function skipSpace(string) {
 	let first = string.search(/\S/);
 	if (first > -1) string = string.slice(first);	// remove leading whitespace
 		
-	/*
-		Is there any # in the current line?
-		if yes, then
-			is there any " in front of the #?
-				if yes, is there a closing " before end of the line?
-					if yes, skip that pair of "" and search for # again
 
-				if no, this is where comments start
-	*/
+	// Is there any # in the current line?
+	// if yes, then
+	// 	is there any " in front of the #?
+	// 		if yes, is there a closing " before end of the line?
+	// 			if yes, skip that pair of "" and search for # again
+	//
+	// 		if no, this is where comments start
+
 	function skipComments(line){
 		let comment = line.search(/#/), tempLine = line;
 		let match, quote, toEndOfLine;
@@ -410,16 +410,31 @@ function skipSpace(string) {
 	if (lineBreak != -1){
 		let result = skipComments(string.slice(0, lineBreak)) + string.slice(lineBreak);
 
-		/*		
-			If current line is emtpy, then we need to call skipSpace() again to 
-			make sure subsequent line's leading white space or comments are removed
-			as well.
-		*/
+				
+		// If current line is emtpy, then we need to call skipSpace() again to 
+		// make sure subsequent line's leading white space or comments are removed
+		// as well.
 		if (result[0] == '\n') return skipSpace(result.slice(1));
 		else return result;
 
 	} else return skipComments(string);
-};
+}
+
+
+
+/*
+	The below code is the from book's answer, however, it fails the case:
+
+	define('x#ok\n,2')
+
+	It treats 'x#ok' as the variable name, instead it should treat 'x' as
+	the variable name.
+*/
+// function skipSpace(string){
+// 	let skippable = string.match(/^(\s|#.*)*/);
+// 	if (skippable) return string.slice(skippable[0].length);
+// 	else return string;
+// }
 
 
 
@@ -466,13 +481,12 @@ specialForms.set = (args, scope) => {
 
 		/*
 			Below code doesn't work. Because it only searches the parent level,
-			suppose there are 3 levels of scope1,
+			however when the following happens,
 
-			s1 (top level)
+			s1 (top level), variable 'x' defined here
 			s2 (Object.create(s1))
-			s3 (Object.create(s2))
-
-			Suppose variable 'x' is defiend in s1 and we call set(x, 10) in s3, 
+			s3 (Object.create(s2)), set(x, value) happens here
+ 
 			the result is another variable 'x' is created in s2. But what we 
 			want is to change 'x' in s1.
 
@@ -487,8 +501,7 @@ specialForms.set = (args, scope) => {
 		*/
 		
 		while(!Object.prototype.hasOwnProperty.call(scope, name)){
-			scope = Object.getPrototypeOf(scope)
-			// console.log(scope);
+			scope = Object.getPrototypeOf(scope);
 		}
 		scope[name] = value;
 		return value;
