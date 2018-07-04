@@ -28,15 +28,20 @@
 	and its prototype object can delegate further to the its own prototype,
 	and so on.
 */
-let a = Object.create({x: 88});
-console.log('lookup a.x = ', a.x);	// a is an empty object, delegate lookup
-									// to prototype object.
+let proto = {
+	x: 88,
+	increment: function() { this.x = this.x + 1; }
+};
+let a = Object.create(proto);
+console.log(Object.getPrototypeOf(a) === proto);	// true
+console.log('lookup a.x = ', a.x);	// 89, a is an empty object, delegate lookup
+									// to object 'proto'
 
-a.x = 99;							// creates a new property in object a,
-									// prototype object is not touched.
+a.increment();	// when calling the function, 'this' is bound to object a,
+				// assigning value to this.x creates a new property 'x' in a
 
-console.log('lookup a.x = ', a.x);	// 99
-console.log('lookup x in prototype = ', Object.getPrototypeOf(a)['x']); // 88
+console.log('lookup a.x = ', a.x);	// 90
+console.log('lookup proto.x = ', Object.getPrototypeOf(a)['x']); // 89
 
 let b = Object.create(null);
 console.log(Object.getPrototypeOf(b));	// null
@@ -57,8 +62,9 @@ console.log('part 1 finished.\n\n');
 		created obj)
 
 	By default, the object bound to function Box's 'prototype' property is an
-	empty object, which is not very interesting. You can change that to create
-	a more meaningful prototype.
+	empty object (actually any function has a 'prototype' property), which is 
+	not very interesting. You can change that to create a more meaningful 
+	prototype.
 */
 function Box(volumn){
 	this.volumn = volumn;
@@ -66,7 +72,8 @@ function Box(volumn){
 
 b = new Box(100);
 console.log('object b is', b);
-console.log(Object.getPrototypeOf(b) == Box.prototype);	// true
+console.log(Box.prototype);	// an empty object (default)
+console.log(Object.getPrototypeOf(b) === Box.prototype);	// true
 
 
 // A constructor with a more meaningful prototype
@@ -77,11 +84,11 @@ function LockedBox(volumn, locked=true){
 
 LockedBox.prototype = {
 	/*
-		lock() { ... } is a short notation of:
+		lock() { ... } is a shortcut notation of:
 
 		lock: function() { ... }
 
-		But for clarity purpose, we will stick to the old notation.
+		For clarity, we will stick to the old notation.
 	*/
 	lock() { this.locked = true; },
 	unlock: function() { this.locked = false; },
@@ -91,8 +98,10 @@ let b2 = new LockedBox(200);
 console.log('object b2 is', b2);
 b2.unlock();
 
-// modify the prototype to add more functionality
+// add a function to the prototype
 LockedBox.prototype.enlarge = function(n) { this.volumn = this.volumn * n; };
+
+// now b2 can access the function
 b2.enlarge(2);
 console.log('object b2 is', b2);
 console.log('part 2 finished.\n\n');
@@ -103,8 +112,8 @@ console.log('part 2 finished.\n\n');
 	Part 3. Create an object with the class notation.
 
 	The 'class' notation is just a wrapper that puts the constructor
-	function and its 'prototype' property into one place. The below is
-	the same as:
+	function and its 'prototype' property into one place. It is the
+	same as:
 
 	function Locker(volumn, name) { ... }
 	Locker.prototype = { showInfo: function() { ... } }
@@ -139,18 +148,29 @@ console.log('part 3 finished.\n\n');
 
 
 /*
-	Part 4. Extend a class and the better alternative.
+	Part 4. Extending a class and a better alternative.
 */
 
 class Foo {
 	constructor(who){
 		this.me = who;
 	}
+
+	identity() { return this.me; }
 }
 
-class Bar {
+class Bar extends Foo {
+	constructor(who, address){
+		super(who);
+		this.address = address;
+	}
 
+	show() { console.log(`${this.identity()} lives in ${this.address}`); }
 }
 
+let bar = new Bar('ZZ', 'California');
+bar.show();
+console.log(Object.getPrototypeOf(bar) == Bar.prototype);	// true
+console.log(Object.getPrototypeOf(Object.getPrototypeOf(bar)) == Foo.prototype);
 
 
