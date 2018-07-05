@@ -7,8 +7,9 @@
 	under the cover it is actually a chain of objects linked together as
 	prototypes, providing behaviour delegation rather than inhertitance.
 
-	Therefore, arguably, we should avoid the class notation all together, and
-	use the prototype systems directly. After all, simpler is better.
+	Therefore, to make things simply and clear, we can avoid the class notation 
+	all together, and use the prototype systems directly. After all, simpler 
+	is better.
 
 	For more information on this matter, see: Inherited a mess by Kyle Simpson.
 
@@ -27,6 +28,9 @@
 	available in 'obj', it will delegate to its prototype object to lookup,
 	and its prototype object can delegate further to the its own prototype,
 	and so on.
+
+	Delegate chain: obj --> prototype_object (any property not found in obj
+	will be delegated to prototype_object)
 */
 let proto = {
 	x: 88,
@@ -39,6 +43,7 @@ console.log('lookup a.x = ', a.x);	// 89, a is an empty object, delegate lookup
 
 a.increment();	// when calling the function, 'this' is bound to object a,
 				// assigning value to this.x creates a new property 'x' in a
+				// if it does not exist yet
 
 console.log('lookup a.x = ', a.x);	// 90
 console.log('lookup proto.x = ', Object.getPrototypeOf(a)['x']); // 89
@@ -50,22 +55,40 @@ console.log('part 1 finished.\n\n');
 
 
 /*
-	Part 2. Create an object via operator 'new'.
+	Part 2. Create an object via operator 'new' and a constructor.
 
-	A function with 'this' in its body can be used as a constructor, i.e.,
-	when used together with the 'new' operator, it creates a new object.
+	In JavaScript, any function can be used as a constructor, i.e., when used 
+	together with the 'new' operator, it creates a new object.
 
-	Under the cover, when we do 'new Box(100)' what happens is:
+	Under the cover of 'new Box(100)', what happens is:
 
 	1. create object: obj = Object.create(Box.prototype);
-	2. execute constructor: obj.volumn = 100 ('this' is bound to the newly
-		created obj)
+	2. execute constructor, Box(100), with 'this' bound to the newly created 
+		obj, so it is equivalent as: obj.volumn = 100
 
-	By default, the object bound to function Box's 'prototype' property is an
-	empty object (actually any function has a 'prototype' property), which is 
-	not very interesting. You can change that to create a more meaningful 
-	prototype.
+	Actually, any function has a 'prototype' property with a default value
+	of an empty object, which is not very interesting. We can change that to 
+	create a more meaningful prototype.
+
+	Usually we will use a function with 'this' in its body so that it can
+	initialize state of the newly created object. But we can use a function
+	without 'this' just the same way, such as:
+
+	function f() {}		// an empty function
+	let a = new f();	// creates an empty object
+	console.log(Object.getPrototypeOf(a) == f.prototype);	// true
+	console.log(a instanceof f);							// true
+	
+	Therefore, the constructor function does two things:
+
+	1. provide a prototype to the newly created object, with its .prototype
+		property.
+
+	2. initialize the newly created object.
+
+	Delegate chain: a --> f.prototype
 */
+
 function Box(volumn){
 	this.volumn = volumn;
 }
@@ -73,7 +96,40 @@ function Box(volumn){
 b = new Box(100);
 console.log('object b is', b);
 console.log(Box.prototype);	// an empty object (default)
+
+
+
+/*
+	instanceof and isPrototypeOf()
+
+	B.isPrototypeOf(A) searches the entire delegat chain of A, see if B is
+	there. For example, if object creation happens like:
+	
+	let b = Object.create(c);	// delegate chain: b --> c
+	let a = Object.create(b);	// delegate chain: a --> b --> c
+
+	Then,
+
+	b.isPrototypeOf(a);	// true
+	c.isPrototypeOf(a);	// true
+
+	
+	A instance of B also searches the entire delegate chain of A, but behaves
+	differently. For example, say b and c are both functions, and,
+
+	let b.prototype = Object.create(c.prototype);	// b.prototype --> c.prototype
+	let a = new b();	// a --> b.prototype --> c.prototype
+
+	Then,
+
+	a instanceof b;	// true
+	a instanceof c;	// true
+	b instanceof c;	// false
+*/
 console.log(Object.getPrototypeOf(b) === Box.prototype);	// true
+console.log(b instanceof Box);					// true
+console.log(Box.prototype.isPrototypeOf(b));	// true
+
 
 
 // A constructor with a more meaningful prototype
@@ -111,12 +167,24 @@ console.log('part 2 finished.\n\n');
 /*
 	Part 3. Create an object with the class notation.
 
-	The 'class' notation is just a wrapper that puts the constructor
-	function and its 'prototype' property into one place. It is the
-	same as:
+	In JavaScript, 'class' is just a wrapper that puts the definition of
+	the constructor function and its 'prototype' property into one place. 
+	
+	For example, the below 'class' Locker, it's the same as:
 
-	function Locker(volumn, name) { ... }
-	Locker.prototype = { showInfo: function() { ... } }
+	let Locker = function(volumn, name) { ... }
+	Locker.prototype = { showInfo: function() { ... } };
+
+	when we do:
+
+	let locker = new Locker(...);
+
+	The above creates a delegate chain: locker --> Locker.prototype, where 
+	the latter has a property 'showInfo' so that locker object can refer to.
+
+	Therefore we can say that JavaScript does not offer any type for user
+	defined objects, they are just objects sitting in different	places of 
+	different delegate chains.
 */
 class Locker {
 	constructor(volumn, owner){
@@ -148,7 +216,9 @@ console.log('part 3 finished.\n\n');
 
 
 /*
-	Part 4. Extending a class and a better alternative.
+	Part 4. Extending a class.
+
+	JavaScript offers class extension syntax as well, 
 */
 
 class Foo {
@@ -161,16 +231,113 @@ class Foo {
 
 class Bar extends Foo {
 	constructor(who, address){
-		super(who);
+		super(who);	// calls Foo(who)
 		this.address = address;
 	}
 
 	show() { console.log(`${this.identity()} lives in ${this.address}`); }
 }
 
+let foo = new Foo('YY');
+console.log(`This person is ${foo.identity()}`);
+
 let bar = new Bar('ZZ', 'California');
 bar.show();
+
+console.log(Object.getPrototypeOf(foo) == Foo.prototype);	// true
+console.log(Object.getPrototypeOf(Bar.prototype) == Foo.prototype);	// true
 console.log(Object.getPrototypeOf(bar) == Bar.prototype);	// true
-console.log(Object.getPrototypeOf(Object.getPrototypeOf(bar)) == Foo.prototype);
+console.log(bar instanceof Bar);	// true
+console.log(bar instanceof Foo);	// true
+console.log(foo instanceof Foo);	// true
+console.log(Bar instanceof Foo);			// false
+console.log(Bar.prototype instanceof Foo);	// true
 
 
+
+/*
+	Under the cover of class extension, what happens is:
+
+	1. define two constructor functions, Foo and Bar.
+	2. creates delegate chains below:
+
+	bar2 ---> Bar2.prototype ---> Foo2.prototype
+							   	
+					    foo2 ---> Foo2.prototype
+
+*/
+let Foo2 = function(who) { this.me = who; };
+Foo2.prototype = {
+	identity: function() { return this.me; }
+};
+
+let Bar2 = function(who, address) {
+	Foo2.call(this, who);
+	this.address = address;
+};
+
+Bar2.prototype = Object.create(Foo2.prototype);	// define the delegate relation
+Bar2.prototype.show = function() {
+	console.log(`${this.identity()} lives in ${this.address}`);
+};
+
+let foo2 = new Foo2('AA');		// foo2 --> Foo2.prototype
+let bar2 = new Bar2('BB', 'Virginia');// bar2 --> Bar2.prototype --> Foo2.prototype
+console.log(`That person is ${foo2.identity()}`);
+bar2.show();
+
+console.log(bar2 instanceof Bar2);	// true
+console.log(bar2 instanceof Foo2);	// true
+console.log(foo2 instanceof Foo2);	// true
+
+console.log('part 4 finished.\n\n');
+
+
+
+/*
+	Part 5. An alternative to object creation. 
+
+	Since the class and constructor function syntax is just but a way to create
+	delegate chains, then why not create and link objects directly in delegate
+	chains, like below.
+
+	lp ---> LivePerson ---> Person
+							
+					 p ---> Person
+
+	No more class and constructor function, no more 'xxx.prototype' in the chain, 
+	we have only objects. Everything is simple and clear.
+*/
+
+// Capitalize the object name, to indicate that it's supposed to be a
+// prototype object containing functions only and no state.
+let Person = {
+	setupIdentity: function(who) { this.me = who },
+	identity: function() { return this.me; }
+}
+
+let LivePerson = Object.create(Person);	// second prototype object
+LivePerson.setupAddress = function(address){
+	this.address = address;
+};
+
+LivePerson.init = function(who, address){
+	this.setupIdentity(who);
+	this.setupAddress(address);
+};
+
+LivePerson.show = function(){
+	console.log(`${this.identity()} lives in ${this.address}`);
+};
+
+let p = Object.create(Person);
+p.setupIdentity('PP');	// initialize state
+
+let lp = Object.create(LivePerson);
+lp.init('QQ', 'Florida');
+
+lp.show();
+console.log(Person.isPrototypeOf(p));	// true
+console.log(Person.isPrototypeOf(lp));	// true
+console.log(Person.isPrototypeOf(LivePerson));	// true
+console.log(LivePerson.isPrototypeOf(lp));		// true
