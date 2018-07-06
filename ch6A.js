@@ -316,19 +316,27 @@ let Person = {
 	identity: function() { return this.me; }
 }
 
-let LivePerson = Object.create(Person);	// second prototype object
-LivePerson.setupAddress = function(address){
-	this.address = address;
-};
+// c = Object.assign(a, b, ...); copy all enumerable own properties to target
+// 
+// Same as:
+// 
+// let LivePerson = Object.create(Person);
+// LivePerson.setupAddress = function () { ... }, etc.
+// 
+let LivePerson = Object.assign(Object.create(Person), {
+	setupAddress: function(address){
+		this.address = address;
+	},
 
-LivePerson.init = function(who, address){
-	this.setupIdentity(who);
-	this.setupAddress(address);
-};
+	init: function(who, address){
+		this.setupIdentity(who);
+		this.setupAddress(address);
+	},
 
-LivePerson.show = function(){
-	console.log(`${this.identity()} lives in ${this.address}`);
-};
+	show: function(){
+		console.log(`${this.identity()} lives in ${this.address}`);
+	}
+});
 
 let p = Object.create(Person);
 p.setupIdentity('PP');	// initialize state
