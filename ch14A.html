@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+	Chapter 14. The Object Document Model.
+
+	Part 2.
+-->
+<html>
+<head>
+	<title>The Document Object Model</title>
+</head>
+<body>
+
+<h1>Test Page</h1>
+
+
+<!-- The line waiting to be filled -->
+<p><span id="one"></span></p>
+<p><span id="two"></span></p>
+
+
+<!--  -->
+
+
+<script>
+
+/*
+	(string) name, (function) action,
+
+	measures how long does function action takes in ms
+*/
+function time(name, action){
+	let start = Date.now();
+	action();
+	console.log(name, 'took', Date.now() - start, 'ms');
+}
+
+
+/*
+	Draw a line of 'X', so that 2000 pixels are taken
+*/
+time('naive', () => {
+	let target = document.getElementById('one');
+	while(target.offsetWidth < 2000){
+		target.appendChild(document.createTextNode('X'));
+	}
+});		// around 150 ms (each time can be different)
+
+
+/*
+	Another way to draw the line to take 2000 pixels
+
+	The difference is that it creates the node and change it only once,
+	this way the engine only refreshes once, unlike the previous function,
+	each time a node is appended, the engine needs to refresh, therefore
+	taking much longer.
+*/
+time('clever', function(){
+	let target = document.getElementById('two');
+	target.appendChild(document.createTextNode('XXXXX'));
+	let times = Math.ceil(2000 * 5/target.offsetWidth);
+	target.firstChild.nodeValue = 'X'.repeat(times);
+});		// around 1 ms
+
+
+
+
+</script>
+
+</body>
+</html>
+

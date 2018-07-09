@@ -137,6 +137,12 @@ function addFootnote(){
 */
 function removeSecret(){
 	let paras = document.body.getElementsByTagName('p');
+	/*
+		The object returned by getElementsByXXX() function is not an Array,
+		instead it is a NodeList object, accessed via index. If we want to
+		access it like an Array, use the Array.from() method to convert it
+		to array.
+	*/
 	for (let para of Array.from(paras)){
 		if (para.getAttribute('data-classified') == 'secret'){
 			para.remove();
