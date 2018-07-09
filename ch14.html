@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>The Document Object Model</title>
+</head>
+<body>
+
+<h1>My Home Page</h1>
+<p>This is "Eloquent JavaScript" by Marijn Haverbeke.</p>
+<p>It's an excellent book and you can read it <a href='http://eloquentjavascript.net'>here</a>.</p>
+
+
+<!-- An "id" attribute can help to retrieve the node -->
+<p>Some animals:</p>
+<p><img id='animalPenguin' src='image/Penguins.png'></p>
+
+<script>
+
+/*
+	Chapter 14. The Document Object Model
+*/
+
+// get first one from all 'a' elements
+let link = document.body.getElementsByTagName('a')[0];
+console.log(link.href);
+
+// get a node by its id attribute
+let animal = document.getElementById('animalPenguin');
+console.log(animal.src);
+
+</script>
+
+</body>
+</html>
+
