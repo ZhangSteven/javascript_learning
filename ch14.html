@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!--
+	Chapter 14. The Object Document Model.
+-->
 <html>
 <head>
 	<title>The Document Object Model</title>
@@ -14,11 +17,45 @@
 <p>Some animals:</p>
 <p><img id='animalPenguin' src='image/Penguins.png'></p>
 
-<script>
 
-/*
-	Chapter 14. The Document Object Model
-*/
+<!-- Changing the document, move "three" ahead of "one" -->
+<p>One</p>
+<p>Two</p>
+<p>Three</p>
+
+
+<!-- Replace image node by text node -->
+<p>The <img src='image/cat.png' alt='cat'> in the 
+	<img src='image/hat.png' alt='hat'>.</p>
+<p><button onclick="replaceImages()">Replace Image</button></p>
+
+
+<!-- Create element node -->
+<blockquote id="quote">
+	No book can ever be finished. While working on it we learn just enough to find it immature the moment we turn away from it.
+
+	<!-- The elt() function does the same thing as below
+	<footer>-<strong>Karl Popper</strong>, preface to the second edition of 
+		<em>The Open Society and Its Enemies</em>, 1950
+	</footer>
+	-->
+</blockquote>
+<p><button onclick="addFootnote()">Add Footnoot</button></p>
+
+
+<!-- Custom attributes -->
+<p data-classified="secret">The launch code is 74123.</p>
+<p data-classified="unclassified">I have two feet.</p>
+<p><button onclick="removeSecret()">Remove Secret</button></p>
+
+
+<!-- Layout -->
+<p id="boxedP" style="border: 3px solid red">I am boxed in</p>
+<p><button onclick="showLayoutInfo()">Show Layout</button></p>
+
+
+
+<script>
 
 // get first one from all 'a' elements
 let link = document.body.getElementsByTagName('a')[0];
@@ -27,6 +64,121 @@ console.log(link.href);
 // get a node by its id attribute
 let animal = document.getElementById('animalPenguin');
 console.log(animal.src);
+
+// move paragraph "Three" in front of paragraph "one"
+let paragraphs = document.getElementsByTagName('p');
+document.body.insertBefore(paragraphs[6], paragraphs[4]);
+
+/*
+	Replace image node by text node.
+
+	1. Skip the penguin image (with id attribute = 'animalPenguin')
+	2. Loop from the last node to the first. This is because the
+		images object is live updated by the browser when we do the
+		replacement. If we start from the first node, the next 
+		iteration, the original second image become the first node
+		because the first node is gone.
+*/
+function replaceImages(){
+	let images = document.body.getElementsByTagName('img');
+	for (let i=images.length-1; i>=0; i--){
+		let image = images[i];
+		if (image.id != 'animalPenguin' && image.alt){
+			// create new text node
+			let text = document.createTextNode(image.alt);
+			image.parentNode.replaceChild(text, image);
+		}
+	}
+}
+
+
+
+/*
+	Create element node and insert as child nodes to an existing node.
+*/
+function elt(type, ...children){
+	let node = document.createElement(type);
+	for (let child of children){
+		if (typeof child != 'string') node.appendChild(child);
+		else node.appendChild(document.createTextNode(child));
+	}
+	return node;
+}
+
+function addFootnote(){
+	document.getElementById('quote').appendChild(
+		elt('footer', '-',
+			elt('strong', 'Karl Popper'),
+			', preface to the second edition of ',
+			elt('em', 'The Open Society and Its Enemies'),
+			', 1950'
+			)
+		);
+}
+
+
+/*
+	Access user defined attributes.
+
+	Some element attributes, such as 'href' for links, can be accessed through
+	a property of the same name on the element's DOM object, like link.href.
+
+	But HTML allows you to set customized attributes on nodes. This can be useful
+	becasue it allows you to store more information in a document. However such
+	attributes are not available through property names, instead, they can be
+	accessed through getAttribute() and setAttribute() methods.
+
+	The commonly used attribute 'class', as it is also a JavaScript keyword, is
+	not accessible as property .class, is only accessible throught one of the two
+	ways:
+
+	1. as property 'className', or
+	2. getAttribute('class'), setAttribute('class')
+*/
+function removeSecret(){
+	let paras = document.body.getElementsByTagName('p');
+	for (let para of Array.from(paras)){
+		if (para.getAttribute('data-classified') == 'secret'){
+			para.remove();
+		}
+	}
+}
+
+
+/*
+	Get layout information for an element.
+*/
+function showLayoutInfo(){
+	let para = document.getElementById('boxedP');
+	let newNode = createPNode(
+		`offset width=${para.offsetWidth}, height=${para.offsetHeight}`);
+	insertAfter(newNode, para);
+	insertAfter(createPNode(
+		`client width=${para.clientWidth}, height=${para.clientHeight}`), 
+		newNode);
+}
+
+
+/*
+	Create a paragraph (<p>) node with text.
+*/
+function createPNode(text){
+	let p = document.createElement('p');
+	p.appendChild(document.createTextNode(text));
+	return p;
+}
+
+
+/*
+	JavaScript does not offer an "insertAfter()" function like insertBefore,
+
+	Here is the implementation, from:
+
+	https://stackoverflow.com/a/4793630
+*/
+function insertAfter(newNode, referenceNode){
+	referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+}
 
 </script>
 
