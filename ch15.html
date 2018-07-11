@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+	Chapter 15. Handling Events
+-->
+<html>
+<head>
+	<title>Handling Events</title>
+</head>
+<body>
+
+<h1 style="color: blue">Handling Events</h1>
+
+
+<!-- Register a handler for the window -->
+<p>Click this document to activate the handler.</p>
+
+
+<!-- 
+	Register a handler for event 'mouseover' for a paragraph via 
+	attribute 'onmouseover'. We can register handlers for other
+	events via 'onclick', 'onmousedown', etc.
+	
+	The browser will call the handler with an event object, which
+	contains information about the event, such as event.target (the
+	node on which the event is triggered).
+
+	If we specify onmouseover="logEvent()", then the event object will be
+	ignored when calling the function. So if we need the event object, 
+	then put onmouseover="logEvent(event)" instead.
+-->
+<p id="testPara1" onmouseover="logEvent(event)">Try this paragraph</p>
+
+
+<!-- More on event object -->
+<p>click me anyway you want
+	<button id="buttonTest" onmousedown="logMouse(event)">Magic Button</button>
+</p>
+
+
+<!--  -->
+
+
+
+<script type="text/javascript">
+	
+/*
+	An event handler for the window
+
+	Each time a mouse click on the window, this handler will be called.
+*/
+window.addEventListener("click", function windowMouseClick(){
+	console.log('mouse clicked inside window');
+});
+
+
+/*
+	handler registered via attribute.
+*/
+function logEvent(event){
+	console.log('mouse over node', event.target.nodeName);
+}
+
+
+/*
+	Add another handler for the 'mouseover' event.
+
+	You can always add more handlers for the same event via addEventListener()
+	call. Note that the event name is 'mouseover', the attribute name is
+	'onmouseover'.
+
+	Change the paragraph color randomly for the paragraph.
+*/
+document.querySelector('#testPara1').addEventListener('mouseover', changeColor);
+
+function changeColor(event){
+	const colors = ['black', 'green', 'blue', 'purple'];
+	let i = Math.floor(Math.random() * colors.length);
+	event.target.style.color = colors[i];
+}
+
+
+/*
+	Handler for 'mousedown' event.
+
+	The difference between a 'mousedown' and 'click' event is, the former is
+	trigger when either a left or right button is pressed down; but the
+	latter is triggered when a left button is pressed down and then released.
+*/
+function logMouse(event){
+	if (event.button == 0){
+		console.log('left button');
+	} else if (event.button == 1){
+		console.log('middle button');
+	} else if (event.button == 2){
+		console.log('right button');
+	}
+}
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

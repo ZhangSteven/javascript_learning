@@ -83,8 +83,11 @@ const MOUNTAINS = [
 	MOUNTAINS. The showMountain() insert that table into the page.
 */
 function showMountain(){
-	// same as document.getElementById('mountains').appendChild();
-	document.querySelector('#mountains').appendChild(buildTable(MOUNTAINS));
+	let div = document.querySelector('#mountains');
+	if (div.children.length == 0){	// pressing button multiple times has
+									// no effect.
+		div.appendChild(buildTable(MOUNTAINS));
+	}
 }
 
 
@@ -175,6 +178,7 @@ function insertRow(table, row, isHeader=false){
 */
 
 
+
 /*
 	Exercise 2
 
@@ -215,7 +219,7 @@ function doAnimation(){
 	let angle = 0;	// initial position
 	let lastTime = null;
 
-	let toTop = 350;
+	let toTop = 650;
 	let toLeft = 230;
 
 	/*
