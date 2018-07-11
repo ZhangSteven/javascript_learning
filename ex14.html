@@ -75,6 +75,62 @@ const MOUNTAINS = [
     {name: "Mont Blanc", height: 4808, place: "Italy/France"}
 ];
 
+
+/*
+	From the solution.
+
+	he buildTable() just build a table element with an array like
+	MOUNTAINS. The showMountain() insert that table into the page.
+*/
+function showMountain(){
+	// same as document.getElementById('mountains').appendChild();
+	document.querySelector('#mountains').appendChild(buildTable(MOUNTAINS));
+}
+
+
+/*
+	From the solution: a generic function to build a HTML table.
+	
+	However, to make the function stay generic, make sure number columns
+	align to the right is not implemented here.
+
+	[Array] content: an array like MOUNTAINS for the table content.
+*/
+function buildTable(content){
+	let fields = Object.keys(content[0]);
+	let table = document.createElement('table');
+	table.appendChild(buildRow(fields, true));	// create header row
+	content.forEach(row => {
+		table.appendChild(buildRow(fields.map(field => row[field])));
+	});
+
+	return table;
+
+	/*
+		[Array] row: column values in this row
+		[Boolean] isHeader: if it's true, create the header row ('th')
+			otherwise create a normal row ('td').
+	*/
+	function buildRow(row, isHeader=false){
+		let r = document.createElement('tr');
+		row.forEach(item => {
+			let column = isHeader ? document.createElement('th') :
+									document.createElement('td');
+			column.textContent = item;
+			r.appendChild(column);
+		});
+
+		return r;
+	}
+}
+
+
+/*
+	This is the version I worked out.
+
+	Compared to the answer from the book, the book's solution is
+	better.
+
 function showMountain(){
 	let table = createTable();
 	let headers = getHeaders();
@@ -92,20 +148,15 @@ function getHeaders(){
 	return keys;
 }
 
-/*
-	Create table and insert it to the 'div' section.
-*/
+// Create table and insert it to the 'div' section.
 function createTable(){
 	let table = document.createElement('table');
 	document.getElementById('mountains').appendChild(table);
 	return table;
 }
 
-/*
-	Insert row in the table.
 
-	[element node] table, [Array] row
-*/
+// Insert row in the table: [element node] table, [Array] row
 function insertRow(table, row, isHeader=false){
 	let r = document.createElement('tr')
 	for (let item of row){
@@ -121,7 +172,7 @@ function insertRow(table, row, isHeader=false){
 	}
 	table.appendChild(r);
 }
-
+*/
 
 
 /*
