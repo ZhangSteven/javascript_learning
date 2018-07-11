@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!--
+	Chapter 14. The Object Document Model.
+
+	Exercises.
+-->
+<html>
+<head>
+	<title>Exercises: The Document Object Model</title>
+</head>
+<body>
+
+<h1>Exercises for Chapter 14</h1>
+
+
+<!-- Exercise 1 -->
+<h2 style="color: blue">Mountains</h2>
+
+<!-- The mountains table should be put here -->
+<div id="mountains"></div>
+<p><button onclick="showMountain()">Show Mountains</button></p>
+
+
+<!-- Exercise 2 -->
+<h2>Heading with a <span>span</span> element.</h2>
+<style>
+	table {
+		width: 60%;
+
+		/* 
+			since we have border for table, th and td elements,
+			then we will end up with double borders. So we collapse
+			the borders into a single border.
+		*/
+		border-collapse: collapse;
+	}
+
+	th {	
+		/* by default, the th elements are center aligned */
+		height: 50px;
+		text-align: left;
+	}
+
+	td {
+		height: 30px;
+	}
+
+	table, th, td {
+		border: 1px solid blue;
+	}
+
+</style>
+<p id="ex2">A paragraph with <span>one</span>, <span>two</span> spans.</p>
+
+
+<!-- Exercise 3 -->
+<style>
+	body { min-height: 200px; }	/* reserve space */
+</style>
+<img src="image/redBall.png" id="redBall" style="position: absolute">
+<img src="image/blueBall.png" id="blueBall" style="position: absolute">
+<p><button onclick="doAnimation()">Start Animation</button></p>
+
+
+
+<script>
+
+const MOUNTAINS = [
+    {name: "Kilimanjaro", height: 5895, place: "Tanzania"},
+    {name: "Everest", height: 8848, place: "Nepal"},
+    {name: "Mount Fuji", height: 3776, place: "Japan"},
+    {name: "Vaalserberg", height: 323, place: "Netherlands"},
+    {name: "Denali", height: 6168, place: "United States"},
+    {name: "Popocatepetl", height: 5465, place: "Mexico"},
+    {name: "Mont Blanc", height: 4808, place: "Italy/France"}
+];
+
+function showMountain(){
+	let table = createTable();
+	let headers = getHeaders();
+	insertRow(table, headers, true);
+	for (let mountain of MOUNTAINS){
+		insertRow(table, headers.map(header => mountain[header]));
+	}
+}
+
+function getHeaders(){
+	let keys = [];
+	for (let key in MOUNTAINS[0]){
+		keys.push(key);
+	}
+	return keys;
+}
+
+/*
+	Create table and insert it to the 'div' section.
+*/
+function createTable(){
+	let table = document.createElement('table');
+	document.getElementById('mountains').appendChild(table);
+	return table;
+}
+
+/*
+	Insert row in the table.
+
+	[element node] table, [Array] row
+*/
+function insertRow(table, row, isHeader=false){
+	let r = document.createElement('tr')
+	for (let item of row){
+		let column = isHeader ? document.createElement('th') :
+								document.createElement('td');
+		column.appendChild(document.createTextNode(item));
+
+		// if the content is a number, make sure they are aligned to the
+		// right.
+		if(!isNaN(item)) column.style.textAlign = 'right';
+
+		r.appendChild(column);
+	}
+	table.appendChild(r);
+}
+
+
+
+/*
+	Exercise 2
+
+	Find all sub nodes with a given name
+*/
+function byTagName(node, tagName){
+	let result = [];
+	function findTag(node){
+		if (node.children.length > 0) {
+			for (let i=0; i<node.children.length; i++) {
+				findTag(node.children[i]);
+			}
+		}
+		if (node.nodeName == tagName.toUpperCase()){
+			result.push(node);
+		}
+	}
+	findTag(node);
+	return result;
+}
+
+console.log(byTagName(document.body, 'h1').length);		// 1
+console.log(byTagName(document.body, 'span').length);	// 3
+let para = document.getElementById('ex2');
+console.log(byTagName(para, 'span').length);			// 2
+
+
+
+/*
+	Exercise 3
+
+	Two balls rotating.
+*/
+function doAnimation(){
+	let red = document.getElementById('redBall');
+	let blue = document.getElementById('blueBall');
+
+	let angle = 0;	// initial position
+	let lastTime = null;
+
+	let toTop = 350;
+	let toLeft = 230;
+
+	/*
+		The browser will call this function when it's ready to refresh,
+		it will pass current time as the argument.
+	*/
+	function animate(time){
+		if (lastTime != null) angle = angle + (time - lastTime) * 0.001;
+		lastTime = time;
+
+		red.style.top = (toTop + Math.sin(angle)*40) + 'px';
+		red.style.left = (toLeft + Math.cos(angle)*200) + 'px';
+		blue.style.top = (toTop + Math.sin(angle + Math.PI)*40) + 'px';
+		blue.style.left = (toLeft + Math.cos(angle + Math.PI)*200) + 'px';
+
+		requestAnimationFrame(animate);
+	}
+
+	// register callback function to requestAnimationFrame()
+	requestAnimationFrame(animate);
+}
+
+
+</script>
+
+</body>
+</html>
+

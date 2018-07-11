@@ -18,7 +18,80 @@
 <p><span id="two"></span></p>
 
 
-<!--  -->
+<!-- Styling -->
+<p><a href=".">Normal link</a></p>
+<p><a href="." style="color: green">Green link</a></p>
+
+<!-- block tag will end up in its own line, while none tag prevents
+an element from showing on the screen. we can reveal the hidden text later. -->
+This text is displayed <strong>inline</strong>, 
+<strong style="display: block">as a block</strong>, and
+<strong style="display: none">not at all</strong>.
+
+
+<!-- color to be changed later -->
+<p id="para" style="color: purple">Nice text</p>
+<p><button onclick="changeColor()">Change Color</button></p>
+
+
+<!-- Cascading Styles
+
+	A style sheet is a set of rules for how to style elements in a document. 
+It can be given in a <style> tag.
+
+	p {...}: apply to all 'p' elements
+	.abc   : apply to all elements in their 'class' attribute
+	#xyz   : apply to the element with an 'id' attribute of 'xyz' (which
+				should be unique within the document).
+
+	Other notations: p > a {...} applies to all 'a' tags that are direct
+	children of 'p' tags. Similarly, p a {...} applies to all 'a' tags
+	inside 'p' tags, whether they are direct or indirect children.
+ -->
+ <style>
+ 	strong {
+ 		font-style: italic;
+ 		color: gray;
+ 	}
+
+ 	.subtle {
+ 		color: gray;
+ 		font-size: 80%;
+ 	}
+
+ 	#header {
+ 		background: blue;
+ 		color: white;
+ 	}
+
+ 	/* p elements with id 'main' and with classes 'a' and 'b' */
+ 	p#main.a.b{
+ 		margin-bottom: 20px;
+ 	}
+ </style>
+ <p>Now <strong>strong text</strong> is italic and gray.</p>
+ <p class="subtle">Subtle <strong>strong text</strong> is italic and gray.</p>
+ <p id="header">Good Post</p>
+ <p id="main" class="a">Main text</p>
+
+
+ <!-- Query Selectors -->
+ <p>And if you go chasing
+ 	<span class="animal">rabbits</span></p>
+ 	
+ <p>And you know you're going to fall</p>
+ <p>Tell 'em a <span class="character">hookah smoking
+ 	<span class="animal">caterpillar</span></span></p>
+ <p>Has given you the call</p>
+ <p><button onclick="hideAnimal()">Hide Animal</button></p>
+
+
+ <!-- Positioning and Animating -->
+<p style="text-align: center">
+	<img src="image/ball.png" style="position: relative">
+</p>
+<p><button onclick="doAnimation()">Start Animation</button></p>
+
 
 
 <script>
@@ -62,6 +135,102 @@ time('clever', function(){
 });		// around 1 ms
 
 
+/*
+	Change the style of a paragraph.
+*/
+function changeColor(){
+	let target = document.getElementById('para');
+	target.style.color = 'magenta';
+}
+
+
+/*
+	Query Selector
+
+	We can use the below methods to find elements in a DOM object, whose
+	syntax is the same as the CSS selector syntax.
+
+	querySelectorAll(): return a NodeList object containing all matches
+	querySelector(): the first matching element or null if none matches
+
+	The difference between querySelectorAll() and getElementsByTagName()
+	is that the object returned by querySelectorAll() is NOT live. It
+	won't change when you change the document.
+*/
+function count(selector){
+	return document.querySelectorAll(selector).length;
+}
+
+
+function hideAnimal(selector){
+	let targets = document.querySelectorAll('.animal');
+	for(let i=0; i<targets.length; i++){
+		targets[i].style.display = 'none';	// hide it.
+	}
+}
+
+console.log(count('p'));			// All <p> elements
+console.log(count('.animal'));		// class 'animal'
+console.log(count('p .animal'));	// Animal inside of <p>
+console.log(count('p > .animal'));	// Direct child of <p>
+
+
+
+/*
+	Animation
+
+	The 'position' style property influences layout in a powerful way.
+	By default it has a value of 'static', meaning the element sits in
+	its normal place in the document. When it is set to 'relative', the
+	element still takes up space in the document, but now the 'top' and
+	'left' style properties can be used to move it relative to that normal
+	place.
+
+	See another example on ex14.html, when position is set to 'absolute'
+	and a different version (better?) on animate().
+
+	The picture is centered on the page and given a position of 'relative'.
+	We will repeatedly update the picture's 'top' and 'left' styles to move
+	it.
+
+	The script uses 'requestAnimateFrame' to schedule the 'animate' function
+	to run whenever the browser is ready to repaint the screen. The 'animate'
+	function itself again calls 'requestAnimateFrame' to schedule the next
+	update. When the browser window is active, this will cause updates to
+	happen at a rate of about 60 per second.
+
+	If we just updated the DOM in a loop, the page would freeze, and nothing
+	would show up on the screen. Browsers do not update their display while
+	a JavaScript program is running, nor do they allow any interaction with
+	the page.
+*/
+function doAnimation(){
+	let cat = document.querySelector('img');
+	let angle = Math.PI / 2;
+	
+	function animate(time, lastTime){
+		if (lastTime != null){
+			angle = angle + (time - lastTime) * 0.001;
+		}
+
+		/*
+			we need to append units so that browser knows how to
+			position the element. Here is the unit is 'px', we
+			can use 'em' (centimeter) as well.
+		*/
+		cat.style.top = (Math.sin(angle) * 40) + 'px';
+		cat.style.left = (Math.cos(angle) * 200) + 'px';
+
+		/*
+			instead of pass animate(), we pass an anonymous function
+			newTime => animate(newTime, time), in this way the 'time' passed
+			in this round, will be become the 'lastTime' in the next call.
+		*/
+		requestAnimationFrame(newTime => animate(newTime, time));
+	}
+
+	requestAnimationFrame(animate);
+}
 
 
 </script>
