@@ -31,13 +31,66 @@
 <p id="testPara1" onmouseover="logEvent(event)">Try this paragraph</p>
 
 
-<!-- More on event object -->
-<p>click me anyway you want
+<!-- 
+	Propogation 
+
+	For most event types, handlers registered on nodes with children will
+	also receive events that happen in the children. If a button inside a
+	paragraph gets clicked, event handlers on the paragraph will also see
+	the click event.
+
+	But if both the button and the paragraph have a handler, the more specific
+	handler -- the one on the button -- gets to go first. The event is said
+	to propagate outward, from the node where it happened to that node's
+	parent node and on to the root of the document. Finally, after all handlers
+	registered on a specific node have their turn, handlers registered on
+	the whole window get a chance to respond to the event.
+-->
+
+<p onmousedown="logParaMouse()">click me anyway you want
 	<button id="buttonTest" onmousedown="logMouse(event)">Magic Button</button>
 </p>
 
 
-<!--  -->
+<!-- Put a single handler on the parent node to handle events on
+	sub nodes, i.e., the list of buttons in this case. -->
+<div id="divTest" onclick="divClick(event)">
+	<p>Click any of the buttons below</p>
+	<button id="buttonA">Do A</button>
+	<button id="buttonB">Do B</button>
+	<button id="buttonC">Do C</button>
+</div>
+
+
+<!-- Default Actions 
+	For some events, we can add our own event listeners and prevent the
+	default action to happen, such as clicking on URL link. 
+-->
+<p>Try this link:
+	<a id="strangeLink" href="https://developer.mozilla.org/">strange link</a>
+</p>
+
+
+<!-- key events -->
+<div id="divTest2">
+	<p>Press 'v' to see what happens.</p>
+	<p>Press 'Ctrl + i' to continue.</p>
+	<blockquote>
+	The philosophers have only interpreted the world, in various ways. The point, however, is to change it.
+	<footer>-Karl Marx, Eleven Theses on Feuerbach</footer>
+	</blockquote>
+</div>
+
+
+<!-- 
+	Mouse motion, to be handled by doMouseMove()
+
+	For another mouse event handler drawing dots on the window, see
+	ch15A.html
+-->
+<p>Drag the bar to change its width</p>
+<div id="divTest3" style="background: orange; width: 60px; height: 20px">
+</div>
 
 
 
@@ -85,6 +138,9 @@ function changeColor(event){
 	The difference between a 'mousedown' and 'click' event is, the former is
 	trigger when either a left or right button is pressed down; but the
 	latter is triggered when a left button is pressed down and then released.
+
+	event.stopPropagation(): stops the event from propagating to the parent
+	node.
 */
 function logMouse(event){
 	if (event.button == 0){
@@ -93,13 +149,155 @@ function logMouse(event){
 		console.log('middle button');
 	} else if (event.button == 2){
 		console.log('right button');
+		event.stopPropagation();
 	}
 }
 
 
+/*
+	Handler for 'mousedown' event for the paragraph.
+
+	All mousedown events on the button inside the paragraph will also 
+	propagate to this handler unless there is a event.propagation()
+	call in the button's handler.
+*/
+function logParaMouse(){
+	console.log('mousedown detected on the paragraph');
+}
+
+
+/*
+	Handler for the div section, id 'divTest'
+*/
+function divClick(event){
+	// Handle click on the button, not click on the div
+	if (event.target.nodeName == 'BUTTON'){
+		console.log('clicked', event.target.textContent, 'id =', 
+			event.target.id);
+	}
+}
+
+
+/*
+	Register a handler for 'click' event on the URL link.
+
+	event.preventDefault() stops the default behaviour, i.e., following
+	the link and opening a new page.
+
+	Depending on the browser, some events cannot be intercepted at all.
+	On Chrome, for example, the keyboard shortcut to close the current
+	tab (Ctrl+W) cannot be handled by JavaScript.
+*/
+document.querySelector('#strangeLink').addEventListener('click', event =>{
+	console.log('strange link clicked');
+	event.preventDefault();
+});
+
+
+/*
+	Add a key event handler.
+
+	Unlike mouse events, it is not clear to see the DOM node where a key event 
+	originates. It actually depends on the element that has focus when the
+	key is pressed. Most nodes cannot have focus unless you give them a tabindex
+	attribute, but things like links, buttons and form fields can.
+
+	When nothing in particular has focus, document.body acts as the target node
+	of key events.
+*/
+
+// when 'v' key is pressed
+window.addEventListener('keydown', event => {
+	if (event.key == 'v'){
+		/*
+			To specify a background color in CSS, the syntax is:
+
+			<body background-color="green">
+
+			To change that style property, we need to use 'backgroundColor'
+			without the '-'. This is similar for other style properties
+			with '-' in its name, such as 'font-family'.
+		*/
+		document.querySelector('#divTest2').style.backgroundColor = 'teal';
+
+		/*
+			If we press 'v' and holding it down, multiple 'keydown' events
+			are fired because the key repeats. So there will be multiple 
+			below console.log() printed. Sometimes we need to be careful about
+			this.
+		*/
+		console.log('key "v" is pressed');
+	}
+});
+
+// when 'v' key is released
+window.addEventListener('keyup', event => {
+	if (event.key == 'v'){
+		document.querySelector('#divTest2').style.backgroundColor = 'white';
+	}
+});
+
+// when the combination of 'Ctrl' and 'Space' key is pressed
+window.addEventListener('keydown', event => {
+	if (event.key == 'i' && event.ctrlKey){
+		console.log('Ctrl-i detected');
+	}
+});
 
 
 
+/*
+	Handler for mouse motion.
+
+	Move the mouse over the colored bar ('div' section), the press left
+	button and move the mouse. The bar's length will change according to
+	the mouse's movement, until the left button is released.
+*/
+function doMouseMotion(){
+	let lastX;
+	let bar = document.querySelector('#divTest3');
+	bar.addEventListener('mousedown', event => {
+		if (event.button == 0){	// left click
+			lastX = event.clientX;
+
+			// active mouse move only after left button clicked.
+			window.addEventListener('mousemove', moved);
+			event.preventDefault();	// prevent selection
+		}
+	});
+
+	function moved(event){
+		/*
+			A mousemove event is triggered whenever the mouse moves, no
+			matter if any mouse buttons are pressed.
+
+			So we don't unregister the moved() function when we release
+			all buttons, subsequent mouse moves with any button pressed 
+			down will change the bar, no matter whether the mouse is moving inside the div section.
+
+			event.buttons: the buttons pressed, left button = 1, right 
+			button = 2, middle = 4, so if event.buttons = 3, then we know
+			both left and right buttons are pressed.
+		*/
+		// console.log('mouse moved');
+		if (event.buttons == 0){
+			window.removeEventListener('mousemove', moved);
+		} else {
+			let dist = event.clientX - lastX;
+
+			/*
+				Limit the minim width to 10px, otherwise the bar width
+				can go negative and disappear.
+			*/
+			let newWidth = Math.max(10, bar.offsetWidth + dist);
+
+			bar.style.width = newWidth + 'px';
+			lastX = event.clientX;
+		}
+	}
+}
+
+doMouseMotion();
 
 </script>
 

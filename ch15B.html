@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+	Chapter 15. Handling Events
+
+	Touch screen events
+-->
+<html>
+<head>
+	<title>Handling Touch Screen Events</title>
+</head>
+<body>
+
+
+<!-- Allow multiple fingers on touch screen -->
+<h2>Touch this page</h2>
+
+<style type="text/css">
+	/* 
+		Define a custom element 'dot' in the css and use it in HTML.
+		
+		For more information, see ch15test.html
+	*/
+	dot {
+		position: absolute;
+		display: block;
+		border: 2px solid red;
+		
+		/* a circle of radius 50 */
+		border-radius: 50px;
+		height: 100px;
+		width: 100px;
+	}
+</style>
+
+
+
+<script type="text/javascript">
+
+function update(event){
+	console.log('event type', event.type);
+	
+	for (let dot; dot = document.querySelector('dot'); ){
+		dot.remove();
+	}
+
+	for (let i=0; i<event.touches.length; i++){
+		let {pageX, pageY} = event.touches[i];
+		let dot = document.createElement('dot');
+		dot.style.left = (pageX - 50) + 'px';
+		dot.style.top = (pageY - 50) + 'px';
+		document.body.appendChild(dot);
+	}
+}
+
+window.addEventListener('touchstart', update);
+window.addEventListener('touchmove', update);
+window.addEventListener('touchend', update);
+
+</script>
+
+</body>
+</html>

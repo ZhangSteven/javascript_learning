@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+	Chapter 15. Handling Events
+
+	Test custom elements in CSS
+-->
+<html>
+<head>
+	<title>Handling Events</title>
+</head>
+<body>
+
+<style type="text/css">
+	dot {
+		position: absolute;
+		display: block;
+		border: 2px solid red;
+		
+		/* a circle of radius 50 */
+		border-radius: 50px;
+		height: 100px;
+		width: 100px;
+	}
+
+	square {
+		position: absolute;
+		display: block;
+		border: 2px solid blue;
+		
+		height: 100px;
+		width: 100px;
+	}
+
+</style>
+
+<!-- 
+	Specify 'height' in the 'div' section so that the circle and square 
+	don't overlap.
+-->
+<p>This is the dot element</p>
+<div style="height: 150px">
+	<dot></dot>
+</div>
+
+<p>This is the square element</p>
+<div style="height: 150px">
+	<square></square>
+</div>
+
+<p>Two elements overlap here</p>
+<dot></dot><square></square>
+
+
+</script>
+
+</body>
+</html>

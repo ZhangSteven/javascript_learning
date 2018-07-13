@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+	Chapter 15. Handling Events
+
+	Drawing dots on the screen.
+-->
+<html>
+<head>
+	<title>Handling Events</title>
+</head>
+<body>
+
+<!-- More mouse events, draw dots on screen -->
+<style type="text/css">
+	body{
+		height: 200px;
+		background: beige;
+	}
+
+	.dot{
+		height: 80px; width: 80px;
+		border-radius: 40px;	/* rounds corners */
+		background: blue;
+		position: absolute;
+	}
+</style>
+
+
+
+<script type="text/javascript">
+
+window.addEventListener('click', event => {
+	let dot = document.createElement('div');
+	dot.className = 'dot';
+
+	/*
+		(event.pageX, event.pageY): the event's coordinates (in pixels) relative
+		to the top-left corner of the whole document.
+
+		(event.clientX, event.clientY): similar, coordinates relative to the 
+		top-left corner of the window, which may be different when the window
+		has been scrolled.
+
+		here we use -40 to make sure the dot is centered at the mouse click.
+	*/
+	dot.style.left = (event.pageX - 40) + 'px';
+	dot.style.top = (event.pageY - 40) + 'px';
+	document.body.appendChild(dot);
+});
+
+
+
+</script>
+
+</body>
+</html>
