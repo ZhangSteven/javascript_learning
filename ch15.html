@@ -15,24 +15,24 @@
 <p>Click this document to activate the handler.</p>
 
 
-<!-- 
-	Register a handler for event 'mouseover' for a paragraph via 
+<!--
+	Register a handler for event 'mouseover' for a paragraph via
 	attribute 'onmouseover'. We can register handlers for other
 	events via 'onclick', 'onmousedown', etc.
-	
+
 	The browser will call the handler with an event object, which
 	contains information about the event, such as event.target (the
 	node on which the event is triggered).
 
 	If we specify onmouseover="logEvent()", then the event object will be
-	ignored when calling the function. So if we need the event object, 
+	ignored when calling the function. So if we need the event object,
 	then put onmouseover="logEvent(event)" instead.
 -->
 <p id="testPara1" onmouseover="logEvent(event)">Try this paragraph</p>
 
 
-<!-- 
-	Propogation 
+<!--
+	Propogation
 
 	For most event types, handlers registered on nodes with children will
 	also receive events that happen in the children. If a button inside a
@@ -62,9 +62,9 @@
 </div>
 
 
-<!-- Default Actions 
+<!-- Default Actions
 	For some events, we can add our own event listeners and prevent the
-	default action to happen, such as clicking on URL link. 
+	default action to happen, such as clicking on URL link.
 -->
 <p>Try this link:
 	<a id="strangeLink" href="https://developer.mozilla.org/">strange link</a>
@@ -82,7 +82,7 @@
 </div>
 
 
-<!-- 
+<!--
 	Mouse motion, to be handled by doMouseMove()
 
 	For another mouse event handler drawing dots on the window, see
@@ -93,9 +93,39 @@
 </div>
 
 
+<!--
+	Focus events.
+
+	When an element gains focus, the browser fires a 'focus' event on it.
+	When it loses focus, the element gets a 'blur' event.
+-->
+<p>Focus event testing</p>
+<p>Name: <input type="text" data-help="full name"></p>
+<p>Age:  <input type="text" data-help="age in years"></p>
+<p id="helpMessage"></p>
+
+
+<!-- message to a separate process -->
+<p>Message from the worker</p>
+<p id="messageWorker"></p>
+
+
+<!-- Timers and intervals -->
+<p>Bomb detected! Counting down:</p>
+<h3 id="bomber"></h3>
+
+
+<!-- Debouncing -->
+<textarea>Type something here...</textarea>
+<p id="showTyping"></p>
+
+<p>Mouse position see below:</p>
+<p id="showMouse"></p>
+
+
 
 <script type="text/javascript">
-	
+
 /*
 	An event handler for the window
 
@@ -157,7 +187,7 @@ function logMouse(event){
 /*
 	Handler for 'mousedown' event for the paragraph.
 
-	All mousedown events on the button inside the paragraph will also 
+	All mousedown events on the button inside the paragraph will also
 	propagate to this handler unless there is a event.propagation()
 	call in the button's handler.
 */
@@ -172,7 +202,7 @@ function logParaMouse(){
 function divClick(event){
 	// Handle click on the button, not click on the div
 	if (event.target.nodeName == 'BUTTON'){
-		console.log('clicked', event.target.textContent, 'id =', 
+		console.log('clicked', event.target.textContent, 'id =',
 			event.target.id);
 	}
 }
@@ -197,7 +227,7 @@ document.querySelector('#strangeLink').addEventListener('click', event =>{
 /*
 	Add a key event handler.
 
-	Unlike mouse events, it is not clear to see the DOM node where a key event 
+	Unlike mouse events, it is not clear to see the DOM node where a key event
 	originates. It actually depends on the element that has focus when the
 	key is pressed. Most nodes cannot have focus unless you give them a tabindex
 	attribute, but things like links, buttons and form fields can.
@@ -222,7 +252,7 @@ window.addEventListener('keydown', event => {
 
 		/*
 			If we press 'v' and holding it down, multiple 'keydown' events
-			are fired because the key repeats. So there will be multiple 
+			are fired because the key repeats. So there will be multiple
 			below console.log() printed. Sometimes we need to be careful about
 			this.
 		*/
@@ -271,11 +301,12 @@ function doMouseMotion(){
 			A mousemove event is triggered whenever the mouse moves, no
 			matter if any mouse buttons are pressed.
 
-			So we don't unregister the moved() function when we release
-			all buttons, subsequent mouse moves with any button pressed 
-			down will change the bar, no matter whether the mouse is moving inside the div section.
+			If we don't unregister the moved() function when we release
+			all buttons, subsequent mouse moves with any button pressed
+			down will also change the bar, even if the mouse moves outside
+			of the div section.
 
-			event.buttons: the buttons pressed, left button = 1, right 
+			event.buttons: the buttons pressed, left button = 1, right
 			button = 2, middle = 4, so if event.buttons = 3, then we know
 			both left and right buttons are pressed.
 		*/
@@ -298,6 +329,128 @@ function doMouseMotion(){
 }
 
 doMouseMotion();
+
+
+/*
+	Handler for focus event.
+
+	Most nodes cannot have focus unless you give them a tabindex
+ 	attribute, but things like links, buttons and form fields can.
+*/
+function doFocus(){
+	let help = document.querySelector('#helpMessage');
+	let fields = document.querySelectorAll('input');
+	for (let field of Array.from(fields)){
+		field.addEventListener('focus', event => {
+			let text = event.target.getAttribute('data-help');
+			help.textContent = text;
+		});
+		field.addEventListener('blur', () => {
+			help.textContent = '';
+		});
+	}
+}
+
+doFocus();
+
+
+/*
+	Handler for message
+
+	Unfortunately spawning a worker process from local file does not work
+	for Chrome.
+
+	See this link:
+	https://stackoverflow.com/a/23206866
+*/
+function doMessage(){
+	let squareWorker = new Worker('code/squareWorker.js');
+	squareWorker.addEventListener('message', event => {
+		document.querySelector('#messageWorker').textContent = event.data;
+	});
+	squareWorker.postMessage(10);
+	squareWorker.postMessage(24);
+}
+
+// doMessage();	// doesn't work in Chrome
+
+
+/*
+	Timers and Intervals
+
+	Create and cancel timer and interval.
+
+	setInterval() is used to set timers that should repeat every X ms.
+*/
+function doTimer(){
+	let ticks = 5;
+	let bombTimer = setTimeout(() => {
+		document.querySelector('#bomber').textContent = 'BOOM!';
+	}, 500*ticks + 10);	// QUESTION: without this extra 10ms, when the bomb
+											// timer is not stopped, it won't show BOOM as well, why?
+
+	let clock = setInterval(() => {
+		document.querySelector('#bomber').textContent = ticks;
+		ticks--;
+		if (ticks == 0){
+			clearInterval(clock);	// stop count down
+
+			if (Math.random() < 0.5){		// 50% chance to stop Bomb
+				clearTimeout(bombTimer);
+				document.querySelector('#bomber').textContent = 'Bomb defused';
+			}
+		}
+	}, 500);
+}
+
+doTimer();
+
+
+/*
+	Debouncing
+
+	Some types of events have the potential to fire rapidly, many times in a
+	row. For those events, if we want to do something nontrial in a handler,
+	we can use setTimeout() to make sure we are not doing it too often.
+
+	When the client is typing continously in the text area, do not show any
+	messages, only after typing is stopped then show something.
+*/
+function doTypeText(){
+	let textarea = document.querySelector('textarea');
+	let i = 1, timeout;
+	textarea.addEventListener('input', event => {
+		clearTimeout(timeout);	// if timeout is null or alraedy timed out, do
+														// nothing
+		timeout = setTimeout(() => {
+			document.querySelector('#showTyping').textContent = 'typing ' + i;
+			i++;
+		}, 500);
+	});
+}
+
+doTypeText();
+
+
+function doMouseMove(){
+	/*
+		update mouse position every 250ms
+	*/
+	let scheduled;
+	window.addEventListener('mousemove', event => {
+		if (!scheduled){
+			setTimeout(() => {
+				document.querySelector('#showMouse').textContent =
+					`250ms ago, mouse was at ${scheduled.pageX}, ${scheduled.pageY}`;
+				scheduled = null;
+			}, 250);
+		}
+		scheduled = event;
+	});
+}
+
+doMouseMove();
+
 
 </script>
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+	Chapter 15. Handling Events
+
+	Scroll event
+-->
+<html>
+<head>
+	<title>Handling Scroll Events</title>
+</head>
+<body>
+
+
+<style type="text/css">
+	/*
+		The progress bar
+	*/
+	#progress {
+		border-bottom: 2px solid blue;
+		width: 0;
+		/*
+			A fixed position acts like an absolute position, but also
+			prevents it from scrolling along with the rest of the document.
+		*/
+		position: fixed;
+		top: 0; left: 0;
+	}
+</style>
+
+
+<h2>Scroll this page</h2>
+
+<!-- The place holder for the progress bar -->
+<div id="progress"></div>
+
+
+<script type="text/javascript">
+	// create some content
+	document.body.appendChild(document.createTextNode(
+		'Hello, World. This is my favourite text. '.repeat(1000)
+	));
+
+	let bar = document.querySelector('#progress');
+
+	/*
+		scrollHeight: the entire height of an element in pixels, including
+			padding, but not the border, scrollbar or margin.
+
+		innerHeight: the global binding refers to the window's height
+		pageYOffset: the pixels the current document has been scrolled from
+			the upper left corner of the window.
+
+		// QUESTION: what if the text is short, so that scrollHeight is smaller
+		then innerHeight?
+
+		Through testing, I found that when that is the case, the scroll event
+		is not fired at all (Chrome browser).
+	*/
+	window.addEventListener('scroll', () => {
+		let max = document.body.scrollHeight - innerHeight;
+		console.log(innerHeight, max);
+
+		// use '%' instead of 'px' as a unit when setting the width so that
+		// the element is sized relative to the window width.
+		bar.style.width = (pageYOffset / max) * 100 + '%';
+	});
+</script>
+
+
+</body>
+</html>
